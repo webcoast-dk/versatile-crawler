@@ -1,0 +1,28 @@
+{
+	"name": "webcoast/versatile-crawler",
+	"description": "A versatile and extendable crawler",
+	"type": "typo3-cms-extension",
+	"license": "GPL-2.0+",
+	"minimum-stability": "dev",
+	"prefer-stable": true,
+	"version": "1.0.0-dev",
+	"authors": [
+		{
+			"name": "Thorben Nissen",
+			"email": "thorben.nissen@kapp-hamburg.de"
+		}
+	],
+	"extra": {
+		"branch-alias": {
+			"dev-master": "1.x-dev"
+		}
+	},
+	"autoload": {
+		"psr-4": {
+			"WEBcoast\\VersatileCrawler\\": "Classes"
+		}
+	},
+	"require": {
+		"typo3/cms": "^8.7.0"
+	}
+}
