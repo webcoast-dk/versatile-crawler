@@ -7,7 +7,6 @@ use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
 use TYPO3\CMS\Core\Database\Query\Restriction\HiddenRestriction;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Core\Utility\HttpUtility;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 use TYPO3\CMS\Frontend\Page\PageRepository;
 use WEBcoast\VersatileCrawler\Controller\QueueController;
@@ -61,7 +60,8 @@ class PageTree extends FrontendRequestCrawler
                     ->from(QueueController::CONFIGURATION_TABLE)
                     ->where(
                         'pid=' . (int)$page['uid'],
-                        'uid!=' . $configuration['uid']
+                        'uid!=' . $configuration['uid'],
+                        'uid!=' . $rootConfiguration['uid']
                     );
                 if ($query->execute()->fetchColumn(0) > 0) {
                     continue;

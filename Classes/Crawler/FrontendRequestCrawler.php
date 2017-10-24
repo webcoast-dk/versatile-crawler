@@ -11,7 +11,7 @@ use WEBcoast\VersatileCrawler\Domain\Model\Item;
 use WEBcoast\VersatileCrawler\Frontend\IndexHook;
 use WEBcoast\VersatileCrawler\Queue\Manager;
 
-abstract class FrontendRequestCrawler implements CrawlerInterface
+abstract class FrontendRequestCrawler implements CrawlerInterface, QueueInterface
 {
     /**
      * @param \WEBcoast\VersatileCrawler\Domain\Model\Item                $item

@@ -5,7 +5,7 @@ namespace WEBcoast\VersatileCrawler\Controller;
 
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use WEBcoast\VersatileCrawler\Crawler\CrawlerInterface;
+use WEBcoast\VersatileCrawler\Crawler\QueueInterface;
 use WEBcoast\VersatileCrawler\Queue\Manager;
 use WEBcoast\VersatileCrawler\Utility\TypeUtility;
 
@@ -43,12 +43,12 @@ class QueueController
             $configuration = $configurationResult->fetch();
             $className = TypeUtility::getClassForType($configuration['type']);
             $crawler = GeneralUtility::makeInstance($className);
-            if (!$crawler instanceof CrawlerInterface) {
+            if (!$crawler instanceof QueueInterface) {
                 throw new \RuntimeException(
                     sprintf(
                         'The registered crawler class "%s" must implement "%s"',
                         $className,
-                        CrawlerInterface::class
+                        QueueInterface::class
                     )
                 );
             }
