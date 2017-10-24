@@ -27,4 +27,5 @@ WEBcoast\VersatileCrawler\Utility\TypeUtility::registerType(
     WEBcoast\VersatileCrawler\Crawler\Meta::class
 );
 
-$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/class.tslib_fe.php']['isOutputting'][] = WEBcoast\VersatileCrawler\Frontend\IndexHook::class . '->indexPage';
+// use end-of-frontend hook to make indexing work with cached pages
+$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/class.tslib_fe.php']['hook_eofe'][] = WEBcoast\VersatileCrawler\Frontend\IndexHook::class . '->indexPage';
