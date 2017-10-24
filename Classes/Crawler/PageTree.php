@@ -153,37 +153,12 @@ class PageTree extends FrontendRequestCrawler
      * @param \WEBcoast\VersatileCrawler\Domain\Model\Item $item
      * @param array                                        $configuration
      *
-     * @return boolean
+     * @return string
      */
-    public function buildRequestUrl(Item $item, array $configuration)
+    protected function buildQueryString(Item $item, array $configuration)
     {
-        $url = isset($configuration['base_url']) && !empty($configuration['base_url']) ? $configuration['base_url'] : null;
-        if ($url === null && $configuration['domain'] > 0) {
-            $domainResult = GeneralUtility::makeInstance(ConnectionPool::class)
-                ->getConnectionForTable('sys_domain')
-                ->select(['domainName'], 'sys_domain', ['uid' => $configuration['domain']]);
-            $domain = $domainResult->fetch();
-            if (is_array($domain) && isset($domain['domainName'])) {
-                $urlParts = ['host' => $domain['domainName']];
-            }
-        } else {
-            $urlParts = parse_url($url);
-        }
-        if (!isset($urlParts['scheme']) || empty($urlParts['scheme'])) {
-            $urlParts['scheme'] = 'http';
-        }
-        if (!isset($urlParts['path']) || empty($urlParts['path'])) {
-            $urlParts['path'] = '/index.php';
-        } else {
-            if (substr($urlParts['path'], -1) !== '/') {
-                $urlParts['path'] .= '/';
-            }
-            $urlParts['path'] .= 'index.php';
-        }
-        $instructions = $item->getData();
-        $urlParts['query'] = 'id=' . $instructions['page'] . '&L=' . $instructions['sys_language_uid'];
-
-        return HttpUtility::buildUrl($urlParts);
+        $data = $item->getData();
+        return 'id=' . $data['page'] . '&L=' . $data['sys_language_uid'];
     }
 
     /**

@@ -42,7 +42,10 @@
                 <source>Record storage page(s)</source>
             </trans-unit>
             <trans-unit id="tx_versatilecrawler_domain_model_configuration.record_storage_page_recursive">
-                <source>Recursion levels</source>
+                <source>Recursion level for storage page</source>
+            </trans-unit>
+            <trans-unit id="tx_versatilecrawler_domain_model_configuration.query_string">
+                <source>Query string for this type of records (without "id" and "L")</source>
             </trans-unit>
             <trans-unit id="tx_versatilecrawler_domain_model_configuration.configurations">
                 <source>Configuration to include</source>

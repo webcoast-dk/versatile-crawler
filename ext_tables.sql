@@ -23,6 +23,7 @@ CREATE TABLE tx_versatilecrawler_domain_model_configuration (
   table_name varchar(500) NOT NULL DEFAULT '',
   record_storage_page int(11) NOT NULL DEFAULT '0',
   record_storage_page_recursive tinyint(1) NOT NULL DEFAULT '0',
+  query_string varchar(1000) NOT NULL DEFAULT '',
 
   # fields for meta configuration
   configurations int(11) NOT NULL DEFAULT '0',

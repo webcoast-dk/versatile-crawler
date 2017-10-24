@@ -122,27 +122,17 @@ return [
                 ],
                 'slider' => [
                     'step' => 1,
-                    'width' => 11
+                    'width' => 110
                 ],
-                'default' => 0
+                'default' => 1
             ]
         ],
-        'record_title_field' => [
-            'label' => 'LLL:EXT:versatile_crawler/Resources/Private/Language/locallang_backend.xlf:tx_versatilecrawler_domain_model_configuration.record_title_field',
+        'query_string' => [
+            'label' => 'LLL:EXT:versatile_crawler/Resources/Private/Language/locallang_backend.xlf:tx_versatilecrawler_domain_model_configuration.query_string',
             'config' => [
                 'type' => 'input',
-                'size' => 30,
-                'maxLength' => 200,
-                'eval' => 'trim'
-            ]
-        ],
-        'record_content_fields' => [
-            'label' => 'LLL:EXT:versatile_crawler/Resources/Private/Language/locallang_backend.xlf:tx_versatilecrawler_domain_model_configuration.record_content_fields',
-            'config' => [
-                'type' => 'input',
-                'size' => 30,
-                'maxLength' => 2000,
-                'eval' => 'trim'
+                'eval' => 'trim',
+                'default' => ''
             ]
         ],
         'configurations' => [
@@ -165,7 +155,7 @@ return [
             'showitem' => 'title,type,domain,base_url,levels,exclude_pages_with_configuration,languages'
         ],
         'records' => [
-            'showitem' => 'title,type,domain,base_url,table_name,records_storage_page,record_storage_page_recursive,languages'
+            'showitem' => 'title,type,domain,base_url,table_name,record_storage_page,record_storage_page_recursive,query_string,languages'
         ],
         'meta' => [
             'showitem' => 'title,type,configurations'
