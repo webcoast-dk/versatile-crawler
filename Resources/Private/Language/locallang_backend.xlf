@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<xliff version="1.2">
+    <file source-language="en" product-name="typo3-base-setup">
+        <body>
+            <trans-unit id="tx_versatilecrawler_domain_model_configuration">
+                <source>Crawler configuration</source>
+            </trans-unit>
+            <trans-unit id="tx_versatilecrawler_domain_model_configuration.title">
+                <source>Title</source>
+            </trans-unit>
+            <trans-unit id="tx_versatilecrawler_domain_model_configuration.domain">
+                <source>Domain</source>
+            </trans-unit>
+            <trans-unit id="tx_versatilecrawler_domain_model_configuration.base_url">
+                <source>Base URL</source>
+            </trans-unit>
+            <trans-unit id="tx_versatilecrawler_domain_model_configuration.type">
+                <source>Type</source>
+            </trans-unit>
+            <trans-unit id="tx_versatilecrawler_domain_model_configuration.type.pageTree">
+                <source>Page tree</source>
+            </trans-unit>
+            <trans-unit id="tx_versatilecrawler_domain_model_configuration.type.records">
+                <source>Records</source>
+            </trans-unit>
+            <trans-unit id="tx_versatilecrawler_domain_model_configuration.type.meta">
+                <source>Meta (group for other configurations)</source>
+            </trans-unit>
+            <trans-unit id="tx_versatilecrawler_domain_model_configuration.levels">
+                <source>Levels</source>
+            </trans-unit>
+            <trans-unit id="tx_versatilecrawler_domain_model_configuration.exclude_pages_with_configuration">
+                <source>Exclude pages, that contain another configuration</source>
+            </trans-unit>
+            <trans-unit id="tx_versatilecrawler_domain_model_configuration.languages">
+                <source>Languages</source>
+            </trans-unit>
+            <trans-unit id="tx_versatilecrawler_domain_model_configuration.table_name">
+                <source>Table to select the records from</source>
+            </trans-unit>
+            <trans-unit id="tx_versatilecrawler_domain_model_configuration.record_storage_page">
+                <source>Record storage page(s)</source>
+            </trans-unit>
+            <trans-unit id="tx_versatilecrawler_domain_model_configuration.record_storage_page_recursive">
+                <source>Recursion levels</source>
+            </trans-unit>
+            <trans-unit id="tx_versatilecrawler_domain_model_configuration.configurations">
+                <source>Configuration to include</source>
+            </trans-unit>
+
+            <trans-unit id="scheduler.queueTask">
+                <source>Queue task</source>
+            </trans-unit>
+            <trans-unit id="scheduler.queueTask.description">
+                <source>Fill or update index queue with items from the selected configurations.</source>
+            </trans-unit>
+            <trans-unit id="scheduler.queueTask.configuration">
+                <source>Configuration</source>
+            </trans-unit>
+            <trans-unit id="scheduler.queueTask.error.emptyConfiguration">
+                <source>At least one configuration needs to be selected.</source>
+            </trans-unit>
+
+            <trans-unit id="scheduler.processTask">
+                <source>Process task</source>
+            </trans-unit>
+            <trans-unit id="scheduler.processTask.description">
+                <source>Process the items in the queue</source>
+            </trans-unit>
+            <trans-unit id="scheduler.processTask.numberOfItemsPerRun">
+                <source>Number of items per run (default: 100)</source>
+            </trans-unit>
+            <trans-unit id="scheduler.processTask.error.numberOfItemsPerRun">
+                <source>The number of items must be greater than zero or empty</source>
+            </trans-unit>
+        </body>
+    </file>
+</xliff>
