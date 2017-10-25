@@ -8,6 +8,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 use TYPO3\CMS\Frontend\Page\CacheHashCalculator;
 use TYPO3\CMS\Frontend\Page\PageRepository;
+use TYPO3\CMS\IndexedSearch\Indexer;
 use WEBcoast\VersatileCrawler\Controller\QueueController;
 use WEBcoast\VersatileCrawler\Domain\Model\Item;
 use WEBcoast\VersatileCrawler\Queue\Manager;
@@ -246,5 +247,38 @@ class Records extends FrontendRequestCrawler
         $queryString .= '&cHash=' . $cacheHash;
 
         return $queryString;
+    }
+
+    /**
+     * @param \WEBcoast\VersatileCrawler\Domain\Model\Item $item
+     *
+     * @return int
+     */
+    public function getRecordUid(Item $item)
+    {
+        $data = $item->getData();
+
+        return ((int)$data['record_uid'] > 0 ? (int)$data['record_uid'] : 0);
+    }
+
+    public function enrichIndexData(Item $item, TypoScriptFrontendController $typoScriptFrontendController, Indexer &$indexer)
+    {
+        $data = $item->getData();
+        $configuration = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable(
+            QueueController::CONFIGURATION_TABLE
+        )->select(['*'], QueueController::CONFIGURATION_TABLE, ['uid' => $item->getConfiguration()])->fetch();
+        if (is_array($configuration) && isset($configuration['table_name'])) {
+            $record = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable(
+                $configuration['table_name']
+            )->select(['*'], $configuration['table_name'], ['uid' => $data['record_uid']])->fetch();
+            if (is_array($record)) {
+                if (isset($GLOBALS['TCA'][$configuration['table_name']]['ctrl']['crdate']) && $record[$GLOBALS['TCA'][$configuration['table_name']]['ctrl']['crdate']]) {
+                    $indexer->conf['crdate'] = $record[$GLOBALS['TCA'][$configuration['table_name']]['ctrl']['crdate']];
+                }
+                if (isset($GLOBALS['TCA'][$configuration['table_name']]['ctrl']['tstamp']) && $record[$GLOBALS['TCA'][$configuration['table_name']]['ctrl']['tstamp']]) {
+                    $indexer->conf['mtime'] = $record[$GLOBALS['TCA'][$configuration['table_name']]['ctrl']['tstamp']];
+                }
+            }
+        }
     }
 }

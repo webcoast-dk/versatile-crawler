@@ -71,7 +71,7 @@ class IndexHook implements SingletonInterface
                 if (!$crawler->isIndexingAllowed($item, $typoScriptFrontendController)) {
                     throw new \RuntimeException('The indexing was denied. This should not happen.');
                 }
-                $this->processIndexing($item, $typoScriptFrontendController);
+                $this->processIndexing($item, $typoScriptFrontendController, $crawler);
                 $item->setState(Item::STATE_SUCCESS);
             } catch (\Exception $e) {
                 if (isset($item) && $item instanceof Item) {
@@ -87,7 +87,7 @@ class IndexHook implements SingletonInterface
         }
     }
 
-    public function processIndexing(Item $item, TypoScriptFrontendController &$typoScriptFrontendController)
+    public function processIndexing(Item $item, TypoScriptFrontendController &$typoScriptFrontendController, FrontendRequestCrawler $crawler)
     {
         $data = $item->getData();
         $indexer = GeneralUtility::makeInstance(Indexer::class);
@@ -107,16 +107,19 @@ class IndexHook implements SingletonInterface
         }
         $indexer->conf['content'] = $typoScriptFrontendController->content;
         $indexer->conf['indexedDocTitle'] = $typoScriptFrontendController->convOutputCharset(
-            $typoScriptFrontendController->indexedDocTitle
+            !empty($typoScriptFrontendController->altPageTitle) ? $typoScriptFrontendController->altPageTitle : $typoScriptFrontendController->indexedDocTitle
         );
         $indexer->conf['metaCharset'] = $typoScriptFrontendController->metaCharset;
         $indexer->conf['mtime'] = isset($typoScriptFrontendController->register['SYS_LASTCHANGED']) ? $typoScriptFrontendController->register['SYS_LASTCHANGED'] : $typoScriptFrontendController->page['SYS_LASTCHANGED'];
         $indexer->conf['index_externals'] = $typoScriptFrontendController->config['config']['index_externals'];
         $indexer->conf['index_descrLgd'] = $typoScriptFrontendController->config['config']['index_descrLgd'];
         $indexer->conf['index_metatags'] = isset($typoScriptFrontendController->config['config']['index_metatags']) ? $typoScriptFrontendController->config['config']['index_metatags'] : true;
-        $indexer->conf['recordUid'] = 0;
+        $indexer->conf['recordUid'] = $crawler->getRecordUid($item);
         $indexer->conf['freeIndexUid'] = (isset($data['rootConfigurationId']) ? $data['rootConfigurationId'] : 0);
         $indexer->conf['freeIndexSetId'] = 0;
+
+        // use this to override `crdate` and `mtime` and other information (used for record indexing)
+        $crawler->enrichIndexData($item, $typoScriptFrontendController, $indexer);
 
         $indexer->init();
         $indexer->indexTypo3PageContent();

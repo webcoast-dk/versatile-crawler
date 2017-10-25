@@ -7,6 +7,7 @@ use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\HttpUtility;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
+use TYPO3\CMS\IndexedSearch\Indexer;
 use WEBcoast\VersatileCrawler\Domain\Model\Item;
 use WEBcoast\VersatileCrawler\Frontend\IndexHook;
 use WEBcoast\VersatileCrawler\Queue\Manager;
@@ -95,5 +96,20 @@ abstract class FrontendRequestCrawler implements CrawlerInterface, QueueInterfac
         $urlParts['query'] = $this->buildQueryString($item, $configuration);
 
         return HttpUtility::buildUrl($urlParts);
+    }
+
+    /**
+     * @param \WEBcoast\VersatileCrawler\Domain\Model\Item $item
+     *
+     * @return int
+     */
+    public function getRecordUid(Item $item)
+    {
+        return 0;
+    }
+
+    public function enrichIndexData(Item $item, TypoScriptFrontendController $typoScriptFrontendController, Indexer &$indexer)
+    {
+        // just do nothing here
     }
 }
