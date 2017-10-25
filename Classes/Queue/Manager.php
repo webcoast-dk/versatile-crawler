@@ -191,6 +191,28 @@ class Manager implements SingletonInterface
         return $query->execute()->fetchColumn(0);
     }
 
+    public function countSuccessfulItems()
+    {
+        $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable(self::QUEUE_TABLE);
+        $query = $connection->createQueryBuilder()->count('*')->from(self::QUEUE_TABLE);
+        $query->where(
+            $query->expr()->eq('state',  Item::STATE_SUCCESS)
+        );
+
+        return $query->execute()->fetchColumn(0);
+    }
+
+    public function countFailedItems()
+    {
+        $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable(self::QUEUE_TABLE);
+        $query = $connection->createQueryBuilder()->count('*')->from(self::QUEUE_TABLE);
+        $query->where(
+            $query->expr()->eq('state',  Item::STATE_ERROR)
+        );
+
+        return $query->execute()->fetchColumn(0);
+    }
+
     public function prepareItemForProcessing($configuration, $identifier, $hash)
     {
         $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable(self::QUEUE_TABLE);

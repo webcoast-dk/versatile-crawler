@@ -63,6 +63,9 @@
             <trans-unit id="scheduler.queueTask.error.emptyConfiguration">
                 <source>At least one configuration needs to be selected.</source>
             </trans-unit>
+            <trans-unit id="scheduler.queueTask.additionalInformation.selectedConfigurations">
+                <source>Selected configurations: %s</source>
+            </trans-unit>
 
             <trans-unit id="scheduler.processTask">
                 <source>Process task</source>
@@ -75,6 +78,9 @@
             </trans-unit>
             <trans-unit id="scheduler.processTask.error.numberOfItemsPerRun">
                 <source>The number of items must be greater than zero or empty</source>
+            </trans-unit>
+            <trans-unit id="scheduler.processTask.additionalInformation.numbers">
+                <source>Total: %d | Pending: %d | Finished: %d | Successful: %d | Failed: %d</source>
             </trans-unit>
         </body>
     </file>

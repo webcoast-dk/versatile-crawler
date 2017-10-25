@@ -3,11 +3,11 @@
 namespace WEBcoast\VersatileCrawler\Scheduler;
 
 
+use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Scheduler\Task\AbstractTask;
 use WEBcoast\VersatileCrawler\Controller\QueueController;
 
-class QueueTask extends AbstractTask
+class QueueTask extends AbstractBaseTask
 {
     /**
      * @var array
@@ -28,5 +28,32 @@ class QueueTask extends AbstractTask
         $queueController = GeneralUtility::makeInstance(QueueController::class);
 
         return $queueController->fillQueue($this->configurations);
+    }
+
+    public function getAdditionalInformation()
+    {
+        $configurationNames = [];
+
+        $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable(
+            QueueController::CONFIGURATION_TABLE
+        );
+        foreach ($this->configurations as $configurationUid) {
+            $configurationResult = $connection->select(
+                ['*'],
+                QueueController::CONFIGURATION_TABLE,
+                ['uid' => $configurationUid]
+            );
+            $configuration = $configurationResult->fetch();
+            if (is_array($configuration) && isset($configuration['title'])) {
+                $configurationNames[] = $configuration['title'];
+            }
+        }
+
+        return sprintf(
+            $this->getLanguageService()->sL(
+                'LLL:EXT:versatile_crawler/Resources/Private/Language/locallang_backend.xlf:scheduler.queueTask.additionalInformation.selectedConfigurations'
+            ),
+            implode(', ', $configurationNames)
+        );
     }
 }

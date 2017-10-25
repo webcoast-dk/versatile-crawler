@@ -6,11 +6,10 @@ namespace WEBcoast\VersatileCrawler\Scheduler;
 use Doctrine\DBAL\DBALException;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Scheduler\ProgressProviderInterface;
-use TYPO3\CMS\Scheduler\Task\AbstractTask;
 use WEBcoast\VersatileCrawler\Controller\CrawlerController;
 use WEBcoast\VersatileCrawler\Queue\Manager;
 
-class ProcessTask extends AbstractTask implements ProgressProviderInterface
+class ProcessTask extends AbstractBaseTask implements ProgressProviderInterface
 {
 
     /**
@@ -58,6 +57,20 @@ class ProcessTask extends AbstractTask implements ProgressProviderInterface
             return 'There are no items in the queue.';
         }
 
-        return '';
+        $totalItems = $queueManager->countAllItems();
+        $finishedItems = $queueManager->countFinishedItems();
+        $successfulItems = $queueManager->countSuccessfulItems();
+        $failedItems = $queueManager->countFailedItems();
+
+        return sprintf(
+            $this->getLanguageService()->sL(
+                'LLL:EXT:versatile_crawler/Resources/Private/Language/locallang_backend.xlf:scheduler.processTask.additionalInformation.numbers'
+            ),
+            $totalItems,
+            $totalItems - $finishedItems,
+            $finishedItems,
+            $successfulItems,
+            $failedItems
+        );
     }
 }
