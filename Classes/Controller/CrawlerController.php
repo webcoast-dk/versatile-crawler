@@ -5,6 +5,7 @@ namespace WEBcoast\VersatileCrawler\Controller;
 
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\MathUtility;
 use WEBcoast\VersatileCrawler\Crawler\CrawlerInterface;
 use WEBcoast\VersatileCrawler\Queue\Manager;
 use WEBcoast\VersatileCrawler\Utility\TypeUtility;
@@ -33,6 +34,10 @@ class CrawlerController
      */
     public function processQueue($numberOfItemsPerRun)
     {
+        // assure that $numberOfItemsPerRun is a valid integer greater than 0
+        if (!MathUtility::canBeInterpretedAsInteger($numberOfItemsPerRun) || $numberOfItemsPerRun < 1) {
+            $numberOfItemsPerRun = 100;
+        }
         $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable(
             self::CONFIGURATION_TABLE
         );
