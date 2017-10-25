@@ -216,8 +216,7 @@ class Manager implements SingletonInterface
             $record['identifier'],
             $record['state'],
             $record['message'],
-            json_decode($record['data'], true),
-            $record['hash']
+            json_decode($record['data'], true)
         );
     }
 }
