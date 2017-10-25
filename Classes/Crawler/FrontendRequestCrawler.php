@@ -48,6 +48,10 @@ abstract class FrontendRequestCrawler implements CrawlerInterface, QueueInterfac
                 CURLOPT_HTTPHEADER => [IndexHook::HASH_HEADER . ': ' . $hash]
             ]
         );
+        $extensionConfiguration = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['versatile_crawler']);
+        if ((int)$extensionConfiguration['disableCertificateCheck'] === 1) {
+            curl_setopt($curlHandle, CURLOPT_SSL_VERIFYHOST, 0);
+        }
         // use this for debugging the frontend indexing part
 //        curl_setopt($curlHandle, CURLOPT_COOKIE, 'XDEBUG_SESSION=PHPSTORM');
         $content = curl_exec($curlHandle);

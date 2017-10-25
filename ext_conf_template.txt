@@ -1,0 +1,2 @@
+# cat=crawling; type=boolean; label=Disable certificate check in frontend request crawler
+disableCertificateCheck = 0
