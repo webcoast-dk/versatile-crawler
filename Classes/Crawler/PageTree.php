@@ -26,6 +26,13 @@ class PageTree extends FrontendRequestCrawler
     public function __construct()
     {
         $this->pageRepository = GeneralUtility::makeInstance(PageRepository::class);
+        $this->pageRepository->init(false);
+        // fake the frontend group list
+        if (!isset($GLOBALS['TSFE'])) {
+            $GLOBALS['TSFE'] = new \stdClass();
+            $GLOBALS['TSFE']->gr_list = '0,-1';
+        }
+        $this->pageRepository->where_groupAccess = $this->pageRepository->getMultipleGroupsWhereClause('pages.fe_group', 'pages');
     }
 
     /**
@@ -40,95 +47,101 @@ class PageTree extends FrontendRequestCrawler
             $rootConfiguration = $configuration;
         }
 
-        $pages = [];
-        $pages[] = $this->pageRepository->getPage_noCheck($configuration['pid']);
+        $rootPage = $this->pageRepository->getPage($configuration['pid']);
+        if (!is_array($rootPage)) {
+            throw new \RuntimeException('The page that contains the configuration is not accessible');
+        }
+        $pages = [$rootPage];
         if ($configuration['levels'] === 0) {
-            $this->getPagesRecursively($pages[0], $pages, null);
+            $this->getPagesRecursively($rootPage, $pages, null);
         } else {
-            $this->getPagesRecursively($pages[0], $pages, $configuration['levels']);
+            $this->getPagesRecursively($rootPage, $pages, $configuration['levels']);
         }
 
         $result = true;
         $queueManager = GeneralUtility::makeInstance(Manager::class);
         $languages = GeneralUtility::intExplode(',', $configuration['languages']);
         foreach ($pages as $page) {
-            if ((int)$configuration['exclude_pages_with_configuration'] === 1) {
-                $query = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable(
-                    QueueController::CONFIGURATION_TABLE
-                )->createQueryBuilder();
-                $query->count('*')
-                    ->from(QueueController::CONFIGURATION_TABLE)
-                    ->where(
-                        'pid=' . (int)$page['uid'],
-                        'uid!=' . $configuration['uid'],
-                        'uid!=' . $rootConfiguration['uid']
-                    );
-                if ($query->execute()->fetchColumn(0) > 0) {
-                    continue;
-                }
-            }
-            if (in_array(0, $languages)) {
-                if ((int)$page['no_search'] === 0 && (int)$page['doktype'] === 1) {
-                    $data = [
-                        'page' => $page['uid'],
-                        'sys_language_uid' => 0,
-                        'rootConfigurationId' => $rootConfiguration['uid']
-                    ];
-                    // add an item for the default language
-                    $item = new Item(
-                        $configuration['uid'],
-                        md5(serialize($data)),
-                        Item::STATE_PENDING,
-                        '',
-                        $data
-                    );
-                    $result = $result && $queueManager->addOrUpdateItem($item);
-                }
-            }
-            // check other languages than 0
-            foreach ($languages as $language) {
-                if ((int)$language !== 0) {
-                    $overlayQuery = GeneralUtility::makeInstance(ConnectionPool::class)
-                        ->getConnectionForTable('pages_language_overlay')
-                        ->createQueryBuilder()
-                        ->select('*')
-                        ->from('pages_language_overlay')
+            if (is_array($this->pageRepository->getPage($page['uid']))) {
+                // get the page from the page repository
+                if ((int)$configuration['exclude_pages_with_configuration'] === 1) {
+                    $query = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable(
+                        QueueController::CONFIGURATION_TABLE
+                    )->createQueryBuilder();
+                    $query->count('*')
+                        ->from(QueueController::CONFIGURATION_TABLE)
                         ->where(
                             'pid=' . (int)$page['uid'],
-                            'sys_language_uid=' . (int)$language
+                            'uid!=' . $configuration['uid'],
+                            'uid!=' . $rootConfiguration['uid']
                         );
-                    $overlayQuery->getRestrictions()->removeAll()
-                        ->add(new DeletedRestriction())
-                        ->add(new HiddenRestriction());
-                    $overlayResult = $overlayQuery->execute();
-                    $overlay = $overlayResult->fetch();
-                    if (is_array($overlay)) {
-                        $overlaidPage = $page;
-                        foreach ($overlaidPage as $fieldName => $value) {
-                            if ($fieldName !== 'uid' && $fieldName !== 'pid') {
-                                if (isset($overlay[$fieldName])) {
-                                    $overlaidPage[$fieldName] = $overlay[$fieldName];
+                    if ($query->execute()->fetchColumn(0) > 0) {
+                        continue;
+                    }
+                }
+                if (in_array(0, $languages)) {
+                    if ((int)$page['no_search'] === 0 && (int)$page['doktype'] === 1) {
+                        $data = [
+                            'page' => $page['uid'],
+                            'sys_language_uid' => 0,
+                            'rootConfigurationId' => $rootConfiguration['uid']
+                        ];
+                        // add an item for the default language
+                        $item = new Item(
+                            $configuration['uid'],
+                            md5(serialize($data)),
+                            Item::STATE_PENDING,
+                            '',
+                            $data
+                        );
+                        $result = $result && $queueManager->addOrUpdateItem($item);
+                    }
+                }
+                // check other languages than 0
+                foreach ($languages as $language) {
+                    if ((int)$language !== 0) {
+                        $overlayQuery = GeneralUtility::makeInstance(ConnectionPool::class)
+                            ->getConnectionForTable('pages_language_overlay')
+                            ->createQueryBuilder()
+                            ->select('*')
+                            ->from('pages_language_overlay')
+                            ->where(
+                                'pid=' . (int)$page['uid'],
+                                'sys_language_uid=' . (int)$language
+                            );
+                        $overlayQuery->getRestrictions()->removeAll()
+                            ->add(new DeletedRestriction())
+                            ->add(new HiddenRestriction());
+                        $overlayResult = $overlayQuery->execute();
+                        $overlay = $overlayResult->fetch();
+                        if (is_array($overlay)) {
+                            $overlaidPage = $page;
+                            foreach ($overlaidPage as $fieldName => $value) {
+                                if ($fieldName !== 'uid' && $fieldName !== 'pid') {
+                                    if (isset($overlay[$fieldName])) {
+                                        $overlaidPage[$fieldName] = $overlay[$fieldName];
+                                    }
                                 }
                             }
-                        }
-                        $overlaidPage['_PAGES_OVERLAY'] = true;
-                        $overlaidPage['_PAGES_OVERLAY_UID'] = $overlay['uid'];
-                        $overlaidPage['_PAGES_OVERLAY_LANGUAGE'] = $language;
-                        if ((int)$overlaidPage['no_search'] === 0 && (int)$overlaidPage['doktype'] === 1) {
-                            $data = [
-                                'page' => $page['uid'],
-                                'sys_language_uid' => $language,
-                                'rootConfigurationId' => $rootConfiguration['uid']
-                            ];
-                            // add an item for the default language
-                            $item = new Item(
-                                $configuration['uid'],
-                                md5(serialize($data)),
-                                Item::STATE_PENDING,
-                                '',
-                                $data
-                            );
-                            $result = $result && $queueManager->addOrUpdateItem($item);
+                            $overlaidPage['_PAGES_OVERLAY'] = true;
+                            $overlaidPage['_PAGES_OVERLAY_UID'] = $overlay['uid'];
+                            $overlaidPage['_PAGES_OVERLAY_LANGUAGE'] = $language;
+                            if ((int)$overlaidPage['no_search'] === 0 && (int)$overlaidPage['doktype'] === 1) {
+                                $data = [
+                                    'page' => $page['uid'],
+                                    'sys_language_uid' => $language,
+                                    'rootConfigurationId' => $rootConfiguration['uid']
+                                ];
+                                // add an item for the default language
+                                $item = new Item(
+                                    $configuration['uid'],
+                                    md5(serialize($data)),
+                                    Item::STATE_PENDING,
+                                    '',
+                                    $data
+                                );
+                                $result = $result && $queueManager->addOrUpdateItem($item);
+                            }
                         }
                     }
                 }

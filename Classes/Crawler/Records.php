@@ -4,6 +4,7 @@ namespace WEBcoast\VersatileCrawler\Crawler;
 
 
 use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Database\Query\Restriction\FrontendRestrictionContainer;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 use TYPO3\CMS\Frontend\Page\CacheHashCalculator;
@@ -40,6 +41,12 @@ class Records extends FrontendRequestCrawler
             $rootConfiguration = $configuration;
         }
 
+        // fake the frontend group list
+        if (!isset($GLOBALS['TSFE'])) {
+            $GLOBALS['TSFE'] = new \stdClass();
+            $GLOBALS['TSFE']->gr_list = '0,-1';
+        }
+
         $page = $this->pageRepository->getPage_noCheck($configuration['pid']);
         $storagePages = [$configuration['record_storage_page']];
         $this->getStoragePagesRecursively(
@@ -69,6 +76,7 @@ class Records extends FrontendRequestCrawler
                 )
             );
         }
+        $query->setRestrictions(new FrontendRestrictionContainer());
         // allow changing the query in sub classes
         $this->alterQuery($query);
 
@@ -77,11 +85,6 @@ class Records extends FrontendRequestCrawler
             $statement->setFetchMode(\PDO::FETCH_ASSOC);
             $queueManager = GeneralUtility::makeInstance(Manager::class);
             $languages = GeneralUtility::intExplode(',', $configuration['languages']);
-            // fake the frontend group list
-            if (!isset($GLOBALS['TSFE'])) {
-                $GLOBALS['TSFE'] = new \stdClass();
-                $GLOBALS['TSFE']->gr_list = '0,-1';
-            }
             foreach ($statement as $record) {
                 // no language field is set or the record is set to "all languages", index it in all languages
                 if (!isset($GLOBALS['TCA'][$configuration['table_name']]['ctrl']['languageField']) || (int)$record[$GLOBALS['TCA'][$configuration['table_name']]['ctrl']['languageField']] === -1) {
