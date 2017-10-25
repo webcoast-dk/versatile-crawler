@@ -34,6 +34,7 @@ class QueueController
      */
     public function fillQueue($configurations)
     {
+        $queueManager = GeneralUtility::makeInstance(Manager::class);
         $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable(
             self::CONFIGURATION_TABLE
         );
@@ -53,6 +54,8 @@ class QueueController
                 );
             }
             $result = $result && $crawler->fillQueue($configuration);
+            // delete old queue entries
+            $queueManager->cleanUpOldItems($GLOBALS['EXEC_TIME'], $configuration['uid']);
         }
 
         return $result;

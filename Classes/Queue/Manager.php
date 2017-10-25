@@ -82,6 +82,20 @@ class Manager implements SingletonInterface
     }
 
     /**
+     * @param int $timestamp
+     * @param int $configuration
+     */
+    public function cleanUpOldItems(int $timestamp, int $configuration)
+    {
+        $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable(self::QUEUE_TABLE);
+        $query = $connection->createQueryBuilder()->delete(self::QUEUE_TABLE);
+        $query->where(
+            $query->expr()->lt('tstamp', $timestamp),
+            $query->expr()->eq('configuration', $configuration)
+        )->execute();
+    }
+
+    /**
      * Return DBAL statement container all pending items
      *
      * @param int $limit Limit of items to be fetched

@@ -6,6 +6,7 @@ namespace WEBcoast\VersatileCrawler\Crawler;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use WEBcoast\VersatileCrawler\Controller\QueueController;
+use WEBcoast\VersatileCrawler\Queue\Manager;
 use WEBcoast\VersatileCrawler\Utility\TypeUtility;
 
 class Meta implements QueueInterface
@@ -23,6 +24,7 @@ class Meta implements QueueInterface
             $rootConfiguration = $configuration;
         }
 
+        $queueManager = GeneralUtility::makeInstance(Manager::class);
         $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable(
             QueueController::CONFIGURATION_TABLE
         );
@@ -48,6 +50,8 @@ class Meta implements QueueInterface
                     );
                 }
                 $result = $result && $crawler->fillQueue($subConfiguration, $rootConfiguration);
+                // delete old queue entries
+                $queueManager->cleanUpOldItems($GLOBALS['EXEC_TIME'], $subConfiguration['uid']);
             }
         } else {
             $result = false;
