@@ -1,7 +1,8 @@
 {
 	"name": "webcoast/versatile-crawler",
-	"description": "A versatile and extendable crawler",
+	"description": "A versatile and extendable crawler for TYPO3 CMS",
 	"type": "typo3-cms-extension",
+	"keywords": ["typo3", "crawler", "search"],
 	"license": "GPL-2.0+",
 	"minimum-stability": "dev",
 	"prefer-stable": true,
