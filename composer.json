@@ -3,7 +3,7 @@
 	"description": "A versatile and extendable crawler for TYPO3 CMS",
 	"type": "typo3-cms-extension",
 	"keywords": ["typo3", "crawler", "search"],
-	"license": "GPL-2.0+",
+	"license": "GPL-3.0+",
 	"minimum-stability": "dev",
 	"prefer-stable": true,
 	"version": "1.0.0-dev",
