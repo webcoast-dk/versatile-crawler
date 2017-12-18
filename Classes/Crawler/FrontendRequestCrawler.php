@@ -59,7 +59,13 @@ abstract class FrontendRequestCrawler implements CrawlerInterface, QueueInterfac
         curl_close($curlHandle);
 
         if ($response['http_code'] >= 200 && $response['http_code'] <= 300) {
-            $item->setState(Item::STATE_SUCCESS);
+            $result = json_decode($content, true);
+            if (is_array($result) && $result['state'] === 'success') {
+                $item->setState(Item::STATE_SUCCESS);
+            } else {
+                $item->setState(Item::STATE_ERROR);
+                $item->setMessage(sprintf('An error occurred. the call to the url "%s" did not returned a valid json. This could only happen in the unlikely case of a missing "%s" header.', $response['url'], IndexHook::HASH_HEADER));
+            }
         } else {
             $result = json_decode($content, true);
             $item->setState(Item::STATE_ERROR);
