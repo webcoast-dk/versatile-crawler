@@ -238,6 +238,11 @@ class Manager implements SingletonInterface
         );
     }
 
+    /**
+     * @param string $hash
+     *
+     * @return \Doctrine\DBAL\Driver\Statement
+     */
     public function getItemForProcessing($hash)
     {
         $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable(self::QUEUE_TABLE);
