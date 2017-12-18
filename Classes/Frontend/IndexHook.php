@@ -24,18 +24,23 @@ class IndexHook implements SingletonInterface
     {
         /** @var \TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController $typoScriptFrontendController */
         $typoScriptFrontendController = &$incomingParameters['pObj'];
-        $typoScriptFrontendController->debug = false;
 
-        $request = GeneralUtility::makeInstance(ServerRequestFactory::class)->fromGlobals();
+        $hashHeader = null;
+        // find the hash header
+        foreach($_SERVER as $headerName => $headerValue) {
+            if (strtolower($headerName) === 'http_' . strtolower(str_replace('-', '_', self::HASH_HEADER))) {
+                $hashHeader = $headerValue;
+                break;
+            }
+        }
+        if (is_array($hashHeader)) {
+            $hashHeader = array_shift($hashHeader);
+        }
 
-        if ($request->hasHeader(self::HASH_HEADER) && strcmp($request->getHeader(self::HASH_HEADER), '') !== 0) {
+        if ($hashHeader !== null && strcmp($hashHeader, '') !== 0) {
             try {
                 $queueManager = GeneralUtility::makeInstance(Manager::class);
-                $hash = $request->getHeader(self::HASH_HEADER);
-                if (is_array($hash)) {
-                    $hash = array_shift($hash);
-                }
-                $itemResult = $queueManager->getItemForProcessing($hash);
+                $itemResult = $queueManager->getItemForProcessing($hashHeader);
                 $itemRecord = $itemResult->fetch();
                 $result = [
                     'state' => 'success',
