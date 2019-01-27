@@ -6,7 +6,6 @@
 	"license": "GPL-3.0+",
 	"minimum-stability": "dev",
 	"prefer-stable": true,
-	"version": "1.0.1",
 	"authors": [
 		{
 			"name": "Thorben Nissen",
@@ -24,6 +23,6 @@
 		}
 	},
 	"require": {
-		"typo3/cms": "^8.7.0"
+		"typo3/cms-core": "^8.7.0 || ^9.5.0"
 	}
 }
