@@ -4,9 +4,8 @@ namespace WEBcoast\VersatileCrawler\Crawler;
 
 
 use TYPO3\CMS\Core\Database\ConnectionPool;
-use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
-use TYPO3\CMS\Core\Database\Query\Restriction\HiddenRestriction;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\VersionNumberUtility;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 use TYPO3\CMS\Frontend\Page\PageRepository;
 use WEBcoast\VersatileCrawler\Controller\QueueController;
@@ -26,7 +25,9 @@ class PageTree extends FrontendRequestCrawler
     public function __construct()
     {
         $this->pageRepository = GeneralUtility::makeInstance(PageRepository::class);
-        $this->pageRepository->init(false);
+        if (VersionNumberUtility::convertVersionNumberToInteger(VersionNumberUtility::getCurrentTypo3Version()) < VersionNumberUtility::convertVersionNumberToInteger('9.0.0')) {
+            $this->pageRepository->init(false);
+        }
         // fake the frontend group list
         if (!isset($GLOBALS['TSFE'])) {
             $GLOBALS['TSFE'] = new \stdClass();
@@ -100,33 +101,9 @@ class PageTree extends FrontendRequestCrawler
                 // check other languages than 0
                 foreach ($languages as $language) {
                     if ((int)$language !== 0) {
-                        $overlayQuery = GeneralUtility::makeInstance(ConnectionPool::class)
-                            ->getConnectionForTable('pages_language_overlay')
-                            ->createQueryBuilder()
-                            ->select('*')
-                            ->from('pages_language_overlay')
-                            ->where(
-                                'pid=' . (int)$page['uid'],
-                                'sys_language_uid=' . (int)$language
-                            );
-                        $overlayQuery->getRestrictions()->removeAll()
-                            ->add(new DeletedRestriction())
-                            ->add(new HiddenRestriction());
-                        $overlayResult = $overlayQuery->execute();
-                        $overlay = $overlayResult->fetch();
-                        if (is_array($overlay)) {
-                            $overlaidPage = $page;
-                            foreach ($overlaidPage as $fieldName => $value) {
-                                if ($fieldName !== 'uid' && $fieldName !== 'pid') {
-                                    if (isset($overlay[$fieldName])) {
-                                        $overlaidPage[$fieldName] = $overlay[$fieldName];
-                                    }
-                                }
-                            }
-                            $overlaidPage['_PAGES_OVERLAY'] = true;
-                            $overlaidPage['_PAGES_OVERLAY_UID'] = $overlay['uid'];
-                            $overlaidPage['_PAGES_OVERLAY_LANGUAGE'] = $language;
-                            if ((int)$overlaidPage['no_search'] === 0 && (int)$overlaidPage['doktype'] === 1) {
+                        $overlay = $this->pageRepository->getPageOverlay($page, $language);
+                        if (is_array($overlay) && isset($overlay['_PAGES_OVERLAY'])) {
+                            if ((int)$overlay['no_search'] === 0 && (int)$overlay['doktype'] === 1) {
                                 $data = [
                                     'page' => $page['uid'],
                                     'sys_language_uid' => $language,

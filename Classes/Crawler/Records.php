@@ -52,7 +52,7 @@ class Records extends FrontendRequestCrawler
         $this->getStoragePagesRecursively(
             $configuration['record_storage_page'],
             $storagePages,
-            ((int)$configuration['record_storage_page_recursive'] === 0 ? null : (int)$configuration['record_storage_page_recursive'])
+            ((int)$configuration['record_storage_page_recursive'] === 0 ? null : (int)$configuration['record_storage_page_recursive'] - 1)
         );
 
         // fetch records
@@ -178,15 +178,23 @@ class Records extends FrontendRequestCrawler
 
     protected function getStoragePagesRecursively($pageUid, &$storagePages, $level)
     {
-        $subPages = $this->pageRepository->getMenu($pageUid, 'uid');
-        foreach ($subPages as $subPage) {
-            $storagePages[] = $subPage['uid'];
-            if ($level === null || $level > 0) {
-                $this->getStoragePagesRecursively(
-                    $subPage['uid'],
-                    $storagePages,
-                    ($level === null ? null : $level - 1)
+        if ($level === null || $level > 0) {
+            $query = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('pages');
+            $query->getRestrictions()->removeAll()->add(GeneralUtility::makeInstance(FrontendRestrictionContainer::class));
+            $query->select('uid')->from('pages')
+                ->where(
+                    $query->expr()->eq('pid', $pageUid),
+                    $query->expr()->eq('sys_language_uid', 0) // Translated pages can not be used as record storage page
                 );
+            if ($statement = $query->execute()) {
+                foreach ($statement as $subPage) {
+                    $storagePages[] = $subPage['uid'];
+                    $this->getStoragePagesRecursively(
+                        $subPage['uid'],
+                        $storagePages,
+                        ($level === null ? null : $level - 1)
+                    );
+                }
             }
         }
     }
