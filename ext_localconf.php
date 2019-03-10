@@ -28,7 +28,7 @@ WEBcoast\VersatileCrawler\Utility\TypeUtility::registerType(
 );
 
 // use end-of-frontend hook to make indexing work with cached pages
-if (TYPO3\CMS\Core\Utility\VersionNumberUtility::convertVersionNumberToInteger(TYPO3\CMS\Core\Utility\VersionNumberUtility::getCurrentTypo3Version() < TYPO3\CMS\Core\Utility\VersionNumberUtility::convertVersionNumberToInteger('9.5.0'))) {
+if (TYPO3\CMS\Core\Utility\VersionNumberUtility::convertVersionNumberToInteger(TYPO3\CMS\Core\Utility\VersionNumberUtility::getCurrentTypo3Version()) < TYPO3\CMS\Core\Utility\VersionNumberUtility::convertVersionNumberToInteger('9.5.0')) {
     $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/class.tslib_fe.php']['hook_eofe'][] = WEBcoast\VersatileCrawler\Frontend\Cms8IndexHook::class . '->indexPage';
 } else {
     $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/class.tslib_fe.php']['hook_eofe'][] = WEBcoast\VersatileCrawler\Frontend\Cms9IndexHook::class . '->indexPage';

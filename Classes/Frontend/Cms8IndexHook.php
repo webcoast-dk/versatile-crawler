@@ -2,15 +2,13 @@
 
 namespace WEBcoast\VersatileCrawler\Frontend;
 
-
-use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 use TYPO3\CMS\IndexedSearch\Indexer;
 use WEBcoast\VersatileCrawler\Crawler\FrontendRequestCrawler;
 use WEBcoast\VersatileCrawler\Domain\Model\Item;
 
-abstract class Cms8IndexHook implements SingletonInterface
+class Cms8IndexHook extends AbstractIndexHook
 {
     public function processIndexing(Item $item, TypoScriptFrontendController &$typoScriptFrontendController, FrontendRequestCrawler $crawler)
     {
