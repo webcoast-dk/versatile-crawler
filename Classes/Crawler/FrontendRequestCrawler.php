@@ -9,7 +9,7 @@ use TYPO3\CMS\Core\Utility\HttpUtility;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 use TYPO3\CMS\IndexedSearch\Indexer;
 use WEBcoast\VersatileCrawler\Domain\Model\Item;
-use WEBcoast\VersatileCrawler\Frontend\IndexHook;
+use WEBcoast\VersatileCrawler\Frontend\AbstractIndexHook;
 use WEBcoast\VersatileCrawler\Queue\Manager;
 
 abstract class FrontendRequestCrawler implements CrawlerInterface, QueueInterface
@@ -45,7 +45,7 @@ abstract class FrontendRequestCrawler implements CrawlerInterface, QueueInterfac
                 CURLOPT_MAXREDIRS => 10,
                 CURLOPT_RETURNTRANSFER => true,
                 CURLINFO_HEADER_OUT => true,
-                CURLOPT_HTTPHEADER => [IndexHook::HASH_HEADER . ': ' . $hash]
+                CURLOPT_HTTPHEADER => [AbstractIndexHook::HASH_HEADER . ': ' . $hash]
             ]
         );
         $extensionConfiguration = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['versatile_crawler']);
@@ -64,7 +64,7 @@ abstract class FrontendRequestCrawler implements CrawlerInterface, QueueInterfac
                 $item->setState(Item::STATE_SUCCESS);
             } else {
                 $item->setState(Item::STATE_ERROR);
-                $item->setMessage(sprintf('An error occurred. the call to the url "%s" did not returned a valid json. This could only happen in the unlikely case of a missing "%s" header.', $response['url'], IndexHook::HASH_HEADER));
+                $item->setMessage(sprintf('An error occurred. the call to the url "%s" did not returned a valid json. This could only happen in the unlikely case of a missing "%s" header.', $response['url'], AbstractIndexHook::HASH_HEADER));
             }
         } else {
             $result = json_decode($content, true);
