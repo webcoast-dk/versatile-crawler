@@ -4,10 +4,10 @@ namespace WEBcoast\VersatileCrawler\Frontend;
 
 
 use TYPO3\CMS\Core\Database\ConnectionPool;
-use TYPO3\CMS\Core\Http\ServerRequestFactory;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\HttpUtility;
+use TYPO3\CMS\Core\Utility\VersionNumberUtility;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 use TYPO3\CMS\IndexedSearch\Indexer;
 use WEBcoast\VersatileCrawler\Controller\QueueController;
@@ -104,6 +104,17 @@ class IndexHook implements SingletonInterface
         $indexer->conf['gr_list'] = $typoScriptFrontendController->gr_list;
         $indexer->conf['cHash'] = $typoScriptFrontendController->cHash;
         $indexer->conf['cHash_array'] = $typoScriptFrontendController->cHash_array;
+        if (VersionNumberUtility::convertVersionNumberToInteger(VersionNumberUtility::getCurrentTypo3Version() >= VersionNumberUtility::convertIntegerToVersionNumber('9.5.0'))) {
+            // page arguments array
+            $indexer->conf['staticPageArguments'] = [];
+            /** @var \TYPO3\CMS\Core\Routing\PageArguments $pageArguments */
+            if ($GLOBALS['TYPO3_REQUEST'] instanceof \Psr\Http\Message\ServerRequestInterface) {
+                $pageArguments = $GLOBALS['TYPO3_REQUEST']->getAttribute('routing', null);
+                if ($pageArguments instanceof \TYPO3\CMS\Core\Routing\PageArguments) {
+                    $indexer->conf['staticPageArguments'] = $pageArguments->getStaticArguments();
+                }
+            }
+        }
         $indexer->conf['crdate'] = $typoScriptFrontendController->page['crdate'];
         $indexer->conf['page_cache_reg1'] = $typoScriptFrontendController->page_cache_reg1;
         $indexer->conf['rootline_uids'] = [];
