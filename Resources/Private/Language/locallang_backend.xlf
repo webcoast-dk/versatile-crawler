@@ -26,6 +26,9 @@
             <trans-unit id="tx_versatilecrawler_domain_model_configuration.type.meta">
                 <source>Meta (group for other configurations)</source>
             </trans-unit>
+            <trans-unit id="tx_versatilecrawler_domain_model_configuration.type.files">
+                <source>Files</source>
+            </trans-unit>
             <trans-unit id="tx_versatilecrawler_domain_model_configuration.levels">
                 <source>Levels</source>
             </trans-unit>
@@ -49,6 +52,12 @@
             </trans-unit>
             <trans-unit id="tx_versatilecrawler_domain_model_configuration.configurations">
                 <source>Configuration to include</source>
+            </trans-unit>
+            <trans-unit id="tx_versatilecrawler_domain_model_configuration.file_storages">
+                <source>File storages</source>
+            </trans-unit>
+            <trans-unit id="tx_versatilecrawler_domain_model_configuration.file_extensions">
+                <source>File extensions</source>
             </trans-unit>
 
             <trans-unit id="scheduler.queueTask">

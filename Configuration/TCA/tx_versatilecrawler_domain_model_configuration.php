@@ -54,6 +54,7 @@ return [
                     ['', ''],
                     ['LLL:EXT:versatile_crawler/Resources/Private/Language/locallang_backend.xlf:tx_versatilecrawler_domain_model_configuration.type.pageTree', 'pageTree'],
                     ['LLL:EXT:versatile_crawler/Resources/Private/Language/locallang_backend.xlf:tx_versatilecrawler_domain_model_configuration.type.records', 'records'],
+                    ['LLL:EXT:versatile_crawler/Resources/Private/Language/locallang_backend.xlf:tx_versatilecrawler_domain_model_configuration.type.files', 'files'],
                     ['LLL:EXT:versatile_crawler/Resources/Private/Language/locallang_backend.xlf:tx_versatilecrawler_domain_model_configuration.type.meta', 'meta']
                 ]
             ]
@@ -145,7 +146,26 @@ return [
                 'size' => 5,
                 'autoSizeMax' => 20
             ]
-        ]
+        ],
+        'file_storages' => [
+            'label' => 'LLL:EXT:versatile_crawler/Resources/Private/Language/locallang_backend.xlf:tx_versatilecrawler_domain_model_configuration.file_storages',
+            'config' => [
+                'type' => 'select',
+                'renderType' => 'selectMultipleSideBySide',
+                'foreign_table' => 'sys_file_storage',
+                'MM' => 'tx_versatilecrawler_domain_model_configuration_file_storage_mm',
+                'size' => 5,
+                'autoSizeMax' => 20
+            ]
+        ],
+        'file_extensions' => [
+            'label' => 'LLL:EXT:versatile_crawler/Resources/Private/Language/locallang_backend.xlf:tx_versatilecrawler_domain_model_configuration.file_extensions',
+            'config' => [
+                'type' => 'input',
+                'eval' => 'trim',
+                'default' => ''
+            ]
+        ],
     ],
     'types' => [
         '0' => [
@@ -156,6 +176,9 @@ return [
         ],
         'records' => [
             'showitem' => 'title,type,domain,base_url,table_name,record_storage_page,record_storage_page_recursive,query_string,languages'
+        ],
+        'files' => [
+            'showitem' => 'title,type,file_storages,file_extensions,languages'
         ],
         'meta' => [
             'showitem' => 'title,type,configurations'

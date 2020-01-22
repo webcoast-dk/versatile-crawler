@@ -28,11 +28,21 @@ CREATE TABLE tx_versatilecrawler_domain_model_configuration (
   # fields for meta configuration
   configurations int(11) NOT NULL DEFAULT '0',
 
+  # fields for files configuration
+  file_storages int(11) NOT NULL DEFAULT '0',
+  file_extensions varchar(200) NOT NULL DEFAULT '',
+
   PRIMARY KEY (uid),
   KEY parent(pid)
 ) Engine = InnoDB;
 
 CREATE TABLE tx_versatilecrawler_domain_model_configuration_mm (
+  uid_local int(11) NOT NULL DEFAULT '0',
+  uid_foreign int(11) NOT NULL DEFAULT '0',
+  sorting int(11) NOT NULL DEFAULT '0'
+) Engine = InnoDB;
+
+CREATE TABLE tx_versatilecrawler_domain_model_configuration_file_storage_mm (
   uid_local int(11) NOT NULL DEFAULT '0',
   uid_foreign int(11) NOT NULL DEFAULT '0',
   sorting int(11) NOT NULL DEFAULT '0'

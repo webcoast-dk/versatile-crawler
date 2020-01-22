@@ -26,6 +26,10 @@ WEBcoast\VersatileCrawler\Utility\TypeUtility::registerType(
     'meta',
     WEBcoast\VersatileCrawler\Crawler\Meta::class
 );
+WEBcoast\VersatileCrawler\Utility\TypeUtility::registerType(
+    'files',
+    WEBcoast\VersatileCrawler\Crawler\Files::class
+);
 
 // use end-of-frontend hook to make indexing work with cached pages
 if (TYPO3\CMS\Core\Utility\VersionNumberUtility::convertVersionNumberToInteger(TYPO3\CMS\Core\Utility\VersionNumberUtility::getCurrentTypo3Version()) < TYPO3\CMS\Core\Utility\VersionNumberUtility::convertVersionNumberToInteger('9.5.0')) {
