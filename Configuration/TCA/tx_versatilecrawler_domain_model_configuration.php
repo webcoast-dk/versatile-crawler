@@ -88,6 +88,7 @@ return [
                 'type' => 'select',
                 'renderType' => 'selectMultipleSideBySide',
                 'special' => 'languages',
+                'minitems' => 1
             ]
         ],
         'table_name' => [
@@ -155,7 +156,8 @@ return [
                 'foreign_table' => 'sys_file_storage',
                 'MM' => 'tx_versatilecrawler_domain_model_configuration_file_storage_mm',
                 'size' => 5,
-                'autoSizeMax' => 20
+                'autoSizeMax' => 20,
+                'minitems' => 1
             ]
         ],
         'file_extensions' => [
