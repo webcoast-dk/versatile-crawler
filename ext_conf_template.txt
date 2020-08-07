@@ -1,2 +1,8 @@
 # cat=crawling; type=boolean; label=Disable certificate check in frontend request crawler
 disableCertificateCheck = 0
+
+# cat=debugging; type=boolean; label=Forward XDebug session cookie
+xDebugForwardCookie = 0
+
+# cat=debugging; type=string; label=XDebug session
+xDebugSession =
