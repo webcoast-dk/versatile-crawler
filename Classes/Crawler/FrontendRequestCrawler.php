@@ -52,7 +52,8 @@ abstract class FrontendRequestCrawler implements CrawlerInterface, QueueInterfac
         );
         $extensionConfiguration = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['versatile_crawler']);
         if ((int)$extensionConfiguration['disableCertificateCheck'] === 1) {
-            curl_setopt($curlHandle, CURLOPT_SSL_VERIFYHOST, 0);
+            curl_setopt($curlHandle, CURLOPT_SSL_VERIFYHOST, false);
+            curl_setopt($curlHandle, CURLOPT_SSL_VERIFYPEER, false);
         }
         // use this for debugging the frontend indexing part
         if (isset($extensionConfiguration['xDebugForwardCookie']) && (int)$extensionConfiguration['xDebugForwardCookie'] === 1 && isset($_COOKIE['XDEBUG_SESSION'])) {
