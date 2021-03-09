@@ -4,6 +4,8 @@ namespace WEBcoast\VersatileCrawler\Crawler;
 
 
 use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Site\Entity\Site;
+use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\HttpUtility;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
@@ -84,17 +86,31 @@ abstract class FrontendRequestCrawler implements CrawlerInterface, QueueInterfac
     }
 
     protected function buildRequestUrl(Item $item, array $configuration) {
-        $url = isset($configuration['base_url']) && !empty($configuration['base_url']) ? $configuration['base_url'] : null;
-        if ($url === null && $configuration['domain'] > 0) {
-            $domainResult = GeneralUtility::makeInstance(ConnectionPool::class)
-                ->getConnectionForTable('sys_domain')
-                ->select(['domainName'], 'sys_domain', ['uid' => $configuration['domain']]);
-            $domain = $domainResult->fetch();
-            if (is_array($domain) && isset($domain['domainName'])) {
-                $urlParts = ['host' => $domain['domainName']];
+        $site = GeneralUtility::makeInstance(SiteFinder::class)->getSiteByPageId($item->getData()['page']);
+        if ($site instanceof Site) {
+            $url = $site->getBase();
+            foreach ($site->getLanguages() as $language) {
+                if ($language->getLanguageId() === $item->getData()['sys_language_uid']) {
+                    $url = $language->getBase();
+                    break;
+                }
             }
-        } else {
             $urlParts = parse_url($url);
+        } else {
+            $url = isset($configuration['base_url']) && !empty($configuration['base_url']) ? $configuration['base_url'] : null;
+            $urlParts = parse_url($url);
+            if ((!isset($urlParts['host']) || empty($urlParts['host'])) && $configuration['domain'] > 0) {
+                $domainResult = GeneralUtility::makeInstance(ConnectionPool::class)
+                    ->getConnectionForTable('sys_domain')
+                    ->select(['domainName'], 'sys_domain', ['uid' => $configuration['domain']]);
+                $domain = $domainResult->fetch();
+                if (is_array($domain) && isset($domain['domainName'])) {
+                    $urlParts = ['host' => $domain['domainName']];
+                }
+            }
+        }
+        if (!isset($urlParts['host']) || empty($urlParts['host'])) {
+            throw new \RuntimeException(sprintf('Missing host for URL to crawl. Please check you site configuration or crawler configuration.'));
         }
         if (!isset($urlParts['scheme']) || empty($urlParts['scheme'])) {
             $urlParts['scheme'] = 'http';
