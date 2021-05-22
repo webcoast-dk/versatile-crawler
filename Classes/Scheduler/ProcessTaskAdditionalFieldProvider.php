@@ -34,7 +34,7 @@ class ProcessTaskAdditionalFieldProvider implements AdditionalFieldProviderInter
         }
 
         $additionalFields[$fieldId] = [
-            'code' => '<input type="text" class="form-control" name="' . $fieldName . '" id="' . $fieldId . '" size="10" value="' . $taskInfo[$fieldId] . '"" />',
+            'code' => '<input type="text" class="form-control" name="' . $fieldName . '" id="' . $fieldId . '" size="10" value="' . $task->numberOfItemsPerRun . '"" />',
             'label' => 'LLL:EXT:versatile_crawler/Resources/Private/Language/locallang_backend.xlf:scheduler.processTask.numberOfItemsPerRun'
         ];
 

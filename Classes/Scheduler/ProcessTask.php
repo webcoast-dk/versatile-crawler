@@ -11,6 +11,7 @@ use WEBcoast\VersatileCrawler\Queue\Manager;
 
 class ProcessTask extends AbstractBaseTask implements ProgressProviderInterface
 {
+    public $numberOfItemsPerRun = 100;
 
     /**
      * This is the main method that is called when a task is executed
