@@ -11,6 +11,7 @@ CREATE TABLE tx_versatilecrawler_domain_model_configuration (
   domain int(11) NOT NULL DEFAULT '0',
   base_url varchar(200) NOT NULL DEFAULT '',
   type varchar(200) NOT NULL DEFAULT '',
+  indexing_configuration int(11) NOT NULL DEFAULT '0',
 
   # fields for page indexer
   levels tinyint(2) NOT NULL DEFAULT '0',

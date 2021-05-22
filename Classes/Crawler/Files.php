@@ -13,8 +13,8 @@ use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Resource\ResourceStorage;
 use TYPO3\CMS\Core\Resource\StorageRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Frontend\Page\PageRepository;
 use TYPO3\CMS\IndexedSearch\Indexer;
+use WEBcoast\VersatileCrawler\Controller\CrawlerController;
 use WEBcoast\VersatileCrawler\Domain\Model\Item;
 use WEBcoast\VersatileCrawler\Queue\Manager;
 
@@ -26,11 +26,6 @@ class Files implements CrawlerInterface, QueueInterface
      * @var StorageRepository
      */
     protected $storageRepository;
-
-    /**
-     * @var PageRepository
-     */
-    protected $pageRepository;
 
     /**
      * PageTree constructor.
@@ -116,6 +111,14 @@ class Files implements CrawlerInterface, QueueInterface
         $hash = md5($item->getIdentifier() . time());
         $queueManager = GeneralUtility::makeInstance(Manager::class);
         $queueManager->prepareItemForProcessing($item->getConfiguration(), $item->getIdentifier(), $hash);
+        $rootConfiguration = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable(CrawlerController::CONFIGURATION_TABLE)->select(
+            ['*'],
+            CrawlerController::CONFIGURATION_TABLE,
+            ['uid' => $item->getData()['rootConfigurationId']],
+            [],
+            [],
+            1
+        )->fetch(\PDO::FETCH_ASSOC);
         /** @var File $file */
         $file = GeneralUtility::makeInstance(FileRepository::class)->findByUid($item->getData()['fileId']);
 
@@ -129,7 +132,7 @@ class Files implements CrawlerInterface, QueueInterface
         $indexer->conf['id'] = $rootPage;
         $indexer->conf['recordUid'] = $file->getUid();
         $indexer->conf['rootline_uids'][0] = $rootPage;
-        $indexer->conf['freeIndexUid'] = (isset($item->getData()['rootConfigurationId']) ? $item->getData()['rootConfigurationId'] : 0);
+        $indexer->conf['freeIndexUid'] = $rootConfiguration['indexing_configuration'];
         $indexer->conf['freeIndexSetId'] = 0;
         $indexer->init();
         $indexer->indexRegularDocument($file->getPublicUrl(), false, $tmpFile);

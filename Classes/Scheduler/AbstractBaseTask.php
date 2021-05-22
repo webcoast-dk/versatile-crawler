@@ -3,15 +3,13 @@
 namespace WEBcoast\VersatileCrawler\Scheduler;
 
 
+use TYPO3\CMS\Core\Localization\LanguageService;
 use TYPO3\CMS\Scheduler\Task\AbstractTask;
 
 abstract class AbstractBaseTask extends AbstractTask
 {
-    /**
-     * @return \TYPO3\CMS\Lang\LanguageService
-     */
-    protected function getLanguageService()
+    protected function getLanguageService(): LanguageService
     {
-        return $GLOBALS['LANG'];
+        return parent::getLanguageService() ?? LanguageService::create('default');
     }
 }
