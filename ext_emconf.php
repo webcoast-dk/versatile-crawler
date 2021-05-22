@@ -3,7 +3,7 @@
 $EM_CONF[$_EXTKEY] = [
     'title' => 'Versatile Crawler',
     'description' => 'A versatile and extendable crawler',
-    'version' => '1.1.0',
+    'version' => '1.1.1',
     'category' => 'plugin',
     'constraints' => [
         'depends' => [
