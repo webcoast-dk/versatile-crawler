@@ -3,7 +3,6 @@
 namespace WEBcoast\VersatileCrawler\Queue;
 
 
-use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -248,6 +247,13 @@ class Manager implements SingletonInterface
         $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable(self::QUEUE_TABLE);
 
         return $connection->select(['*'], self::QUEUE_TABLE, ['hash' => $hash, 'state' => Item::STATE_IN_PROGRESS]);
+    }
+
+    public function removeQueueItem(Item $item)
+    {
+        $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable(self::QUEUE_TABLE);
+
+        return $connection->delete(self::QUEUE_TABLE, ['identifier' => $item->getIdentifier()]);
     }
 
     public function getFromRecord($record)

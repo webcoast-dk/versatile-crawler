@@ -7,6 +7,7 @@ use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\MathUtility;
 use WEBcoast\VersatileCrawler\Crawler\CrawlerInterface;
+use WEBcoast\VersatileCrawler\Exception\InvalidItemException;
 use WEBcoast\VersatileCrawler\Queue\Manager;
 use WEBcoast\VersatileCrawler\Utility\TypeUtility;
 
@@ -64,8 +65,13 @@ class CrawlerController
                     )
                 );
             }
-            $result = $result && $crawler->processQueueItem($item, $configuration);
-            $queueManager->updateState($item);
+            try {
+                $result = $result && $crawler->processQueueItem($item, $configuration);
+                $queueManager->updateState($item);
+            } catch (InvalidItemException $exception) {
+                // Remove queue items, that can not be processed, e.g. if the page is hidden
+                $queueManager->removeQueueItem($exception->getItem());
+            }
         }
 
         return $result;

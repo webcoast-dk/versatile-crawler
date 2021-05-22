@@ -3,13 +3,16 @@
 namespace WEBcoast\VersatileCrawler\Crawler;
 
 
+use Doctrine\DBAL\DBALException;
+use TYPO3\CMS\Core\Context\Context;
+use TYPO3\CMS\Core\Context\VisibilityAspect;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Core\Utility\VersionNumberUtility;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 use TYPO3\CMS\Frontend\Page\PageRepository;
 use WEBcoast\VersatileCrawler\Controller\QueueController;
 use WEBcoast\VersatileCrawler\Domain\Model\Item;
+use WEBcoast\VersatileCrawler\Exception\PageNotAvailableForIndexingException;
 use WEBcoast\VersatileCrawler\Queue\Manager;
 
 class PageTree extends FrontendRequestCrawler
@@ -24,21 +27,22 @@ class PageTree extends FrontendRequestCrawler
      */
     public function __construct()
     {
+        $context = GeneralUtility::makeInstance(Context::class);
+        // Set new visibility aspect to ignore hidden pages
+        $context->setAspect('visibility', new VisibilityAspect());
         $this->pageRepository = GeneralUtility::makeInstance(PageRepository::class);
-        if (VersionNumberUtility::convertVersionNumberToInteger(VersionNumberUtility::getCurrentTypo3Version()) < VersionNumberUtility::convertVersionNumberToInteger('9.0.0')) {
-            $this->pageRepository->init(false);
-        }
         // fake the frontend group list
         if (!isset($GLOBALS['TSFE'])) {
             $GLOBALS['TSFE'] = new \stdClass();
             $GLOBALS['TSFE']->gr_list = '0,-1';
         }
-        $this->pageRepository->where_groupAccess = $this->pageRepository->getMultipleGroupsWhereClause('pages.fe_group', 'pages');
     }
 
     /**
-     * @param array $configuration
-     * @param array $rootConfiguration
+     * @param array      $configuration
+     * @param array|null $rootConfiguration
+     *
+     * @throws DBALException
      *
      * @return boolean
      */
@@ -66,9 +70,7 @@ class PageTree extends FrontendRequestCrawler
             if (is_array($this->pageRepository->getPage($page['uid']))) {
                 // get the page from the page repository
                 if ((int)$configuration['exclude_pages_with_configuration'] === 1) {
-                    $query = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable(
-                        QueueController::CONFIGURATION_TABLE
-                    )->createQueryBuilder();
+                    $query = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable(QueueController::CONFIGURATION_TABLE);
                     $query->count('*')
                         ->from(QueueController::CONFIGURATION_TABLE)
                         ->where(
@@ -143,11 +145,18 @@ class PageTree extends FrontendRequestCrawler
      * @param \WEBcoast\VersatileCrawler\Domain\Model\Item $item
      * @param array                                        $configuration
      *
+     * @throws PageNotAvailableForIndexingException
+     *
      * @return string
      */
     protected function buildQueryString(Item $item, array $configuration)
     {
         $data = $item->getData();
+        $page = $this->pageRepository->getPage($data['page']);
+        if (empty($page)) {
+            // The page may be hidden, so we can not crawl it
+            throw new PageNotAvailableForIndexingException();
+        }
         return 'id=' . $data['page'] . '&L=' . $data['sys_language_uid'];
     }
 
@@ -160,6 +169,6 @@ class PageTree extends FrontendRequestCrawler
     public function isIndexingAllowed(Item $item, TypoScriptFrontendController $typoScriptFrontendController)
     {
         $data = $item->getData();
-        return ($data['page'] === (int)$typoScriptFrontendController->id && $data['sys_language_uid'] === (int)$typoScriptFrontendController->sys_language_uid);
+        return ($data['page'] === (int)$typoScriptFrontendController->id && $data['sys_language_uid'] === GeneralUtility::makeInstance(Context::class)->getAspect('language')->getId());
     }
 }

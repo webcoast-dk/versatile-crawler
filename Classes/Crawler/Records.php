@@ -3,9 +3,11 @@
 namespace WEBcoast\VersatileCrawler\Crawler;
 
 
+use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\Restriction\FrontendRestrictionContainer;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\VersionNumberUtility;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 use TYPO3\CMS\Frontend\Page\CacheHashCalculator;
 use TYPO3\CMS\Frontend\Page\PageRepository;
@@ -223,20 +225,22 @@ class Records extends FrontendRequestCrawler
         }
 
         $isAllowed = true;
-        if ($data['page'] !== (int)$typoScriptFrontendController->id || $data['sys_language_uid'] !== (int)$typoScriptFrontendController->sys_language_uid) {
+        if ($data['page'] !== (int)$typoScriptFrontendController->id || $data['sys_language_uid'] !== GeneralUtility::makeInstance(Context::class)->getAspect('language')->getId()) {
             $isAllowed = false;
         }
-        $queryString = $this->buildQueryString($item, $configuration);
-        $queryParameters = GeneralUtility::explodeUrl2Array($queryString);
-        $cacheHashCalculator = GeneralUtility::makeInstance(CacheHashCalculator::class);
-        $cacheHashParameters = $cacheHashCalculator->getRelevantParameters($queryString);
-        foreach ($cacheHashParameters as $parameter => $value) {
-            if (!isset($typoScriptFrontendController->cHash_array[$parameter]) || $typoScriptFrontendController->cHash_array[$parameter] !== $value) {
+        if (VersionNumberUtility::convertVersionNumberToInteger(VersionNumberUtility::getCurrentTypo3Version()) < VersionNumberUtility::convertVersionNumberToInteger('10.0.0')) {
+            $queryString = $this->buildQueryString($item, $configuration);
+            $queryParameters = GeneralUtility::explodeUrl2Array($queryString);
+            $cacheHashCalculator = GeneralUtility::makeInstance(CacheHashCalculator::class);
+            $cacheHashParameters = $cacheHashCalculator->getRelevantParameters($queryString);
+            foreach ($cacheHashParameters as $parameter => $value) {
+                if (!isset($typoScriptFrontendController->cHash_array[$parameter]) || $typoScriptFrontendController->cHash_array[$parameter] !== $value) {
+                    $isAllowed = false;
+                }
+            }
+            if ($queryParameters['cHash'] !== $typoScriptFrontendController->cHash) {
                 $isAllowed = false;
             }
-        }
-        if ($queryParameters['cHash'] !== $typoScriptFrontendController->cHash) {
-            $isAllowed = false;
         }
 
         return $isAllowed;

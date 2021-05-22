@@ -29,6 +29,9 @@
             <trans-unit id="tx_versatilecrawler_domain_model_configuration.type.files">
                 <source>Files</source>
             </trans-unit>
+            <trans-unit id="tx_versatilecrawler_domain_model_configuration.indexing_configuration">
+                <source>Indexing configuration</source>
+            </trans-unit>
             <trans-unit id="tx_versatilecrawler_domain_model_configuration.levels">
                 <source>Levels</source>
             </trans-unit>
