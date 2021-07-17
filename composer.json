@@ -14,7 +14,7 @@
 	],
 	"extra": {
 		"branch-alias": {
-			"dev-release/1.1": "1.1-dev"
+			"dev-release/1.1": "1.1.x-dev"
 		},
 		"typo3/cms": {
 			"extension-key": "versatile_crawler"
