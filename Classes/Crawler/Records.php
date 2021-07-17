@@ -5,6 +5,7 @@ namespace WEBcoast\VersatileCrawler\Crawler;
 
 use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Database\Query\QueryBuilder;
 use TYPO3\CMS\Core\Database\Query\Restriction\FrontendRestrictionContainer;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\VersionNumberUtility;
@@ -61,19 +62,16 @@ class Records extends FrontendRequestCrawler
         $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable(
             $configuration['table_name']
         );
-        $query = $connection->createQueryBuilder()->select('*')->from($configuration['table_name']);
-        $query->where($query->expr()->in('pid', $storagePages));
+        $query = $connection->createQueryBuilder()->select('t1.*')->from($configuration['table_name'], 't1');
+        $query->where($query->expr()->in('t1.pid', $storagePages));
         if (isset($GLOBALS['TCA'][$configuration['table_name']]['ctrl']['languageField']) && isset($GLOBALS['TCA'][$configuration['table_name']]['ctrl']['translationSource'])) {
             $query->andWhere(
                 $query->expr()->orX(
-                    $query->expr()->eq($GLOBALS['TCA'][$configuration['table_name']]['ctrl']['languageField'], 0),
-                    $query->expr()->eq($GLOBALS['TCA'][$configuration['table_name']]['ctrl']['languageField'], -1),
+                    $query->expr()->eq('t1.' . $GLOBALS['TCA'][$configuration['table_name']]['ctrl']['languageField'], 0),
+                    $query->expr()->eq('t1.' . $GLOBALS['TCA'][$configuration['table_name']]['ctrl']['languageField'], -1),
                     $query->expr()->andX(
-                        $query->expr()->gt($GLOBALS['TCA'][$configuration['table_name']]['ctrl']['languageField'], 0),
-                        $query->expr()->eq(
-                            $GLOBALS['TCA'][$configuration['table_name']]['ctrl']['translationSource'],
-                            0
-                        )
+                        $query->expr()->gt('t1.' . $GLOBALS['TCA'][$configuration['table_name']]['ctrl']['languageField'], 0),
+                        $query->expr()->eq('t1.' .$GLOBALS['TCA'][$configuration['table_name']]['ctrl']['translationSource'], 0)
                     )
                 )
             );
@@ -97,6 +95,7 @@ class Records extends FrontendRequestCrawler
                             'rootConfigurationId' => $rootConfiguration['uid'],
                             'record_uid' => $record['uid']
                         ];
+                        $this->addAdditionalItemData($record, $data);
                         // add an item for the default language
                         $item = new Item(
                             $configuration['uid'],
@@ -116,6 +115,7 @@ class Records extends FrontendRequestCrawler
                             'rootConfigurationId' => $rootConfiguration['uid'],
                             'record_uid' => $record['uid']
                         ];
+                        $this->addAdditionalItemData($record, $data);
                         // add an item for the default language
                         $item = new Item(
                             $configuration['uid'],
@@ -142,6 +142,7 @@ class Records extends FrontendRequestCrawler
                                     'rootConfigurationId' => $rootConfiguration['uid'],
                                     'record_uid' => $record['uid']
                                 ];
+                                $this->addAdditionalItemData($record, $data);
                                 // add an item for the default language
                                 $item = new Item(
                                     $configuration['uid'],
@@ -162,6 +163,7 @@ class Records extends FrontendRequestCrawler
                         'rootConfigurationId' => $rootConfiguration['uid'],
                         'record_uid' => $record['uid']
                     ];
+                    $this->addAdditionalItemData($record, $data);
                     // add an item for the default language
                     $item = new Item(
                         $configuration['uid'],
@@ -201,8 +203,15 @@ class Records extends FrontendRequestCrawler
         }
     }
 
+    /**
+     * @param QueryBuilder $query
+     */
     protected function alterQuery(&$query)
     {
+        // just do nothing here
+    }
+
+    protected function addAdditionalItemData($record, &$data) {
         // just do nothing here
     }
 
