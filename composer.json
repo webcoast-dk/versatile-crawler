@@ -9,12 +9,12 @@
 	"authors": [
 		{
 			"name": "Thorben Nissen",
-			"email": "thorben.nissen@kapp-hamburg.de"
+			"email": "thorben@webcoast.dk"
 		}
 	],
 	"extra": {
 		"branch-alias": {
-			"dev-master": "1.x-dev"
+			"dev-release/1.2": "1.2.x-dev"
 		},
 		"typo3/cms": {
 			"extension-key": "versatile_crawler"
