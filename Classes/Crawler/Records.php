@@ -4,6 +4,7 @@ namespace WEBcoast\VersatileCrawler\Crawler;
 
 
 use TYPO3\CMS\Core\Context\Context;
+use TYPO3\CMS\Core\Context\VisibilityAspect;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\Restriction\FrontendRestrictionContainer;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -78,11 +79,15 @@ class Records extends FrontendRequestCrawler
                 )
             );
         }
-        $query->setRestrictions(new FrontendRestrictionContainer());
+        $query->setRestrictions(GeneralUtility::makeInstance(FrontendRestrictionContainer::class));
         // allow changing the query in sub classes
         $this->alterQuery($query);
 
         $result = true;
+        $context = GeneralUtility::makeInstance(Context::class);
+        $orginalVisibilityAspect = $context->getAspect('visibility');
+        $visibilityAspect = new VisibilityAspect(false, false, false);
+        $context->setAspect('visibility', $visibilityAspect);
         if ($statement = $query->execute()) {
             $statement->setFetchMode(\PDO::FETCH_ASSOC);
             $queueManager = GeneralUtility::makeInstance(Manager::class);
@@ -174,6 +179,7 @@ class Records extends FrontendRequestCrawler
                 }
             }
         }
+        $context->setAspect('visibility', $orginalVisibilityAspect);
 
         return $result;
     }
