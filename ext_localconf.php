@@ -31,4 +31,4 @@ WEBcoast\VersatileCrawler\Utility\TypeUtility::registerType(
     WEBcoast\VersatileCrawler\Crawler\Files::class
 );
 
-$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/class.tslib_fe.php']['hook_eofe'][] = WEBcoast\VersatileCrawler\Frontend\CmsIndexHook::class . '->indexPage';
+$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/class.tslib_fe.php']['contentPostProc-all'][] = WEBcoast\VersatileCrawler\Frontend\CmsIndexHook::class . '->indexPage';
