@@ -3,11 +3,11 @@
 $EM_CONF[$_EXTKEY] = [
     'title' => 'Versatile Crawler',
     'description' => 'A versatile and extendable crawler',
-    'version' => '1.1.1',
+    'version' => '2.0.0-dev',
     'category' => 'plugin',
     'constraints' => [
         'depends' => [
-            'typo3' => '9.5.0-10.4.99',
+            'typo3' => '10.4.0-11.5.99',
         ],
         'conflicts' => [
             'crawler' => ''
