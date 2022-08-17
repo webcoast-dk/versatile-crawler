@@ -4,6 +4,7 @@ namespace WEBcoast\VersatileCrawler\Crawler;
 
 
 use Doctrine\DBAL\DBALException;
+use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Context\VisibilityAspect;
 use TYPO3\CMS\Core\Database\ConnectionPool;
@@ -66,6 +67,7 @@ class PageTree extends FrontendRequestCrawler
         $result = true;
         $queueManager = GeneralUtility::makeInstance(Manager::class);
         $languages = GeneralUtility::intExplode(',', $configuration['languages']);
+        $doktypesToCrawl = GeneralUtility::intExplode(',', (new ExtensionConfiguration())->get('versatile_crawler', 'pagesDoktypes'));
         foreach ($pages as $page) {
             if (is_array($this->pageRepository->getPage($page['uid']))) {
                 // get the page from the page repository
@@ -83,7 +85,7 @@ class PageTree extends FrontendRequestCrawler
                     }
                 }
                 if (in_array(0, $languages)) {
-                    if ((int)$page['no_search'] === 0 && (int)$page['doktype'] === 1) {
+                    if ((int)$page['no_search'] === 0 && in_array((int)$page['doktype'], $doktypesToCrawl)) {
                         $data = [
                             'page' => $page['uid'],
                             'sys_language_uid' => 0,
@@ -105,7 +107,7 @@ class PageTree extends FrontendRequestCrawler
                     if ((int)$language !== 0) {
                         $overlay = $this->pageRepository->getPageOverlay($page, $language);
                         if (is_array($overlay) && isset($overlay['_PAGES_OVERLAY'])) {
-                            if ((int)$overlay['no_search'] === 0 && (int)$overlay['doktype'] === 1) {
+                            if ((int)$overlay['no_search'] === 0 && in_array((int)$overlay['doktype'], $doktypesToCrawl)) {
                                 $data = [
                                     'page' => $page['uid'],
                                     'sys_language_uid' => $language,
