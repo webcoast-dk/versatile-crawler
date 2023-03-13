@@ -26,17 +26,6 @@ return (function() {
                     'eval' => 'trim,required'
                 ]
             ],
-            'domain' => [
-                'label' => 'LLL:EXT:versatile_crawler/Resources/Private/Language/locallang_backend.xlf:tx_versatilecrawler_domain_model_configuration.domain',
-                'config' => [
-                    'type' => 'select',
-                    'renderType' => 'selectSingle',
-                    'foreign_table' => 'sys_domain',
-                    'items' => [
-                        ['', 0]
-                    ]
-                ]
-            ],
             'base_url' => [
                 'label' => 'LLL:EXT:versatile_crawler/Resources/Private/Language/locallang_backend.xlf:tx_versatilecrawler_domain_model_configuration.base_url',
                 'config' => [
@@ -190,10 +179,10 @@ return (function() {
                 'showitem' => 'title,type'
             ],
             'pageTree' => [
-                'showitem' => 'title,type,indexing_configuration,domain,base_url,levels,exclude_pages_with_configuration,languages'
+                'showitem' => 'title,type,indexing_configuration,base_url,levels,exclude_pages_with_configuration,languages'
             ],
             'records' => [
-                'showitem' => 'title,type,indexing_configuration,domain,base_url,table_name,record_storage_page,record_storage_page_recursive,query_string,languages'
+                'showitem' => 'title,type,indexing_configuration,base_url,table_name,record_storage_page,record_storage_page_recursive,query_string,languages'
             ],
             'files' => [
                 'showitem' => 'title,type,indexing_configuration,file_storages,file_extensions,languages'
@@ -204,8 +193,9 @@ return (function() {
         ]
     ];
 
-    if (\TYPO3\CMS\Core\Utility\VersionNumberUtility::convertVersionNumberToInteger(\TYPO3\CMS\Core\Utility\VersionNumberUtility::getCurrentTypo3Version()) >= \TYPO3\CMS\Core\Utility\VersionNumberUtility::convertVersionNumberToInteger('10.0.0')) {
-        unset($tca['columns']['domain']);
+    if (\TYPO3\CMS\Core\Utility\VersionNumberUtility::convertVersionNumberToInteger(\TYPO3\CMS\Core\Utility\VersionNumberUtility::getCurrentTypo3Version()) >= \TYPO3\CMS\Core\Utility\VersionNumberUtility::convertVersionNumberToInteger('11.0.0')) {
+        unset($tca['columns']['languages']['config']['special']);
+        $tca['columns']['languages']['config']['itemsProcFunc'] = \WEBcoast\VersatileCrawler\Utility\TcaUtility::class . '->getLanguageTcaItems';
     }
 
     return $tca;
