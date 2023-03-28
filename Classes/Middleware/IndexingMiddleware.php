@@ -1,23 +1,113 @@
 <?php
 
-namespace WEBcoast\VersatileCrawler\Frontend;
+declare(strict_types=1);
 
+namespace WEBcoast\VersatileCrawler\Middleware;
+
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Context\LanguageAspect;
 use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Http\JsonResponse;
 use TYPO3\CMS\Core\Routing\PageArguments;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\VersionNumberUtility;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 use TYPO3\CMS\IndexedSearch\Indexer;
 use WEBcoast\VersatileCrawler\Controller\CrawlerController;
+use WEBcoast\VersatileCrawler\Controller\QueueController;
 use WEBcoast\VersatileCrawler\Crawler\FrontendRequestCrawler;
 use WEBcoast\VersatileCrawler\Domain\Model\Item;
+use WEBcoast\VersatileCrawler\Queue\Manager;
+use WEBcoast\VersatileCrawler\Utility\TypeUtility;
 
-class CmsIndexHook extends AbstractIndexHook
+class IndexingMiddleware implements MiddlewareInterface
 {
-    public function processIndexing(Item $item, TypoScriptFrontendController &$typoScriptFrontendController, FrontendRequestCrawler $crawler)
+    public const HASH_HEADER = 'X-Versatile-Crawler-Hash';
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    {
+        if ($request->hasHeader(self::HASH_HEADER)) {
+            $hash = $request->getHeader(self::HASH_HEADER);
+            if (is_array($hash)) {
+                $hash = array_shift($hash);
+            }
+
+            if (empty($hash)) {
+                return new JsonResponse(
+                    [
+                        'state' => 'error',
+                        'message' => 'Crawler hash must not be empty',
+                    ],
+                    400
+                );
+            }
+
+            $queueManager = GeneralUtility::makeInstance(Manager::class);
+            $itemResult = $queueManager->getItemForProcessing($hash);
+            $itemRecord = $itemResult->fetch();
+            if (!is_array($itemRecord)) {
+                return new JsonResponse(
+                    [
+                        'message' => 'No item for crawling for given hash',
+                    ],
+                    404
+                );
+            }
+
+            $item = $queueManager->getFromRecord($itemRecord);
+            $configurationResult = GeneralUtility::makeInstance(ConnectionPool::class)
+                ->getConnectionForTable(QueueController::CONFIGURATION_TABLE)
+                ->select(['*'], QueueController::CONFIGURATION_TABLE, ['uid' => $item->getConfiguration()]);
+            $configuration = $configurationResult->fetchAssociative();
+            if (!is_array($configuration)) {
+                return new JsonResponse(
+                    [
+                        'message' => 'No crawling configuration found the given item',
+                    ],
+                    412
+                );
+            }
+            $className = TypeUtility::getClassForType($configuration['type']);
+            $crawler = GeneralUtility::makeInstance($className);
+            if (!$crawler instanceof FrontendRequestCrawler) {
+                return new JsonResponse(
+                    [
+                        'message' => sprintf(
+                            'The class "%s" must extend "%s", to be used for frontend indexing.',
+                            get_class($crawler),
+                            FrontendRequestCrawler::class
+                        ),
+                    ],
+                    400
+                );
+            }
+
+            $controller = $request->getAttribute('frontend.controller') ?? $GLOBALS['TSFE'];
+            if (!$crawler->isIndexingAllowed($item, $controller)) {
+                return new JsonResponse(
+                    [
+                        'message' => 'The indexing was denied. This should not happen.',
+                    ],
+                    403
+                );
+            }
+
+            // Continue with normal request processing, to have the content in the frontend controller
+            $handler->handle($request);
+            $this->processIndexing($item, $controller, $crawler, $request);
+
+            return new JsonResponse([]);
+        }
+
+        // Not a crawler request, continue with normal request processing
+        return $handler->handle($request);
+    }
+
+    public function processIndexing(Item $item, TypoScriptFrontendController &$typoScriptFrontendController, FrontendRequestCrawler $crawler, ServerRequestInterface $request)
     {
         /** @var LanguageAspect $languageAspect */
         $languageAspect = GeneralUtility::makeInstance(Context::class)->getAspect('language');
@@ -30,7 +120,7 @@ class CmsIndexHook extends AbstractIndexHook
                 [],
                 [],
                 1
-            )->fetch(\PDO::FETCH_ASSOC);
+            )->fetchAssociative();
             $indexer = GeneralUtility::makeInstance(Indexer::class);
             $indexer->conf = [];
             $indexer->conf['id'] = $typoScriptFrontendController->id;
@@ -44,12 +134,9 @@ class CmsIndexHook extends AbstractIndexHook
                 $indexer->conf['cHash_array'] = $typoScriptFrontendController->cHash_array;
             }
             $indexer->conf['staticPageArguments'] = [];
-            /** @var PageArguments $pageArguments */
-            if ($GLOBALS['TYPO3_REQUEST'] instanceof ServerRequestInterface) {
-                $pageArguments = $GLOBALS['TYPO3_REQUEST']->getAttribute('routing', null);
-                if ($pageArguments instanceof PageArguments) {
-                    $indexer->conf['staticPageArguments'] = $pageArguments->getStaticArguments();
-                }
+            $pageArguments = $request->getAttribute('routing');
+            if ($pageArguments instanceof PageArguments) {
+                $indexer->conf['staticPageArguments'] = $pageArguments->getStaticArguments();
             }
             $indexer->conf['crdate'] = $typoScriptFrontendController->page['crdate'];
             $indexer->conf['page_cache_reg1'] = $typoScriptFrontendController->page_cache_reg1;

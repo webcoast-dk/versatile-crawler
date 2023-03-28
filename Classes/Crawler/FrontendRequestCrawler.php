@@ -14,7 +14,7 @@ use TYPO3\CMS\IndexedSearch\Indexer;
 use WEBcoast\VersatileCrawler\Domain\Model\Item;
 use WEBcoast\VersatileCrawler\Exception\InvalidItemException;
 use WEBcoast\VersatileCrawler\Exception\PageNotAvailableForIndexingException;
-use WEBcoast\VersatileCrawler\Frontend\AbstractIndexHook;
+use WEBcoast\VersatileCrawler\Middleware\IndexingMiddleware;
 use WEBcoast\VersatileCrawler\Queue\Manager;
 
 abstract class FrontendRequestCrawler implements CrawlerInterface, QueueInterface
@@ -51,7 +51,7 @@ abstract class FrontendRequestCrawler implements CrawlerInterface, QueueInterfac
                     CURLOPT_MAXREDIRS => 10,
                     CURLOPT_RETURNTRANSFER => true,
                     CURLINFO_HEADER_OUT => true,
-                    CURLOPT_HTTPHEADER => [AbstractIndexHook::HASH_HEADER . ': ' . $hash]
+                    CURLOPT_HTTPHEADER => [IndexingMiddleware::HASH_HEADER . ': ' . $hash]
                 ]
             );
             $extensionConfiguration = (new ExtensionConfiguration())->get('versatile_crawler');
@@ -70,13 +70,7 @@ abstract class FrontendRequestCrawler implements CrawlerInterface, QueueInterfac
             curl_close($curlHandle);
 
             if ($response['http_code'] >= 200 && $response['http_code'] <= 300) {
-                $result = json_decode($content, true);
-                if (is_array($result) && $result['state'] === 'success') {
-                    $item->setState(Item::STATE_SUCCESS);
-                } else {
-                    $item->setState(Item::STATE_ERROR);
-                    $item->setMessage(sprintf('An error occurred. the call to the url "%s" did not returned a valid json. This could only happen in the unlikely case of a missing "%s" header.', $response['url'], AbstractIndexHook::HASH_HEADER));
-                }
+                $item->setState(Item::STATE_SUCCESS);
             } else {
                 $result = json_decode($content, true);
                 $item->setState(Item::STATE_ERROR);
