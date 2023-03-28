@@ -36,6 +36,8 @@ abstract class AbstractIndexHook implements SingletonInterface
         }
 
         if ($hashHeader !== null && strcmp($hashHeader, '') !== 0) {
+            // Avoid TYPO3 putting the json result in the cache
+            $typoScriptFrontendController->no_cache = true;
             try {
                 $queueManager = GeneralUtility::makeInstance(Manager::class);
                 $itemResult = $queueManager->getItemForProcessing($hashHeader);
