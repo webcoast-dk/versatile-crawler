@@ -26,6 +26,6 @@
 		}
 	},
 	"require": {
-		"typo3/cms-core": "^v10.4 || ^v11.5"
+		"typo3/cms-core": "^v10.4 || ^v11.5 || ^v12.4"
 	}
 }
