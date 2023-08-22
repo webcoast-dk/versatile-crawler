@@ -59,12 +59,6 @@ abstract class FrontendRequestCrawler implements CrawlerInterface, QueueInterfac
                 curl_setopt($curlHandle, CURLOPT_SSL_VERIFYHOST, false);
                 curl_setopt($curlHandle, CURLOPT_SSL_VERIFYPEER, false);
             }
-            // use this for debugging the frontend indexing part
-            if (isset($extensionConfiguration['xDebugForwardCookie']) && (int)$extensionConfiguration['xDebugForwardCookie'] === 1 && isset($_COOKIE['XDEBUG_SESSION'])) {
-                curl_setopt($curlHandle, CURLOPT_COOKIE, 'XDEBUG_SESSION=' . $_COOKIE['XDEBUG_SESSION']);
-            } elseif ($extensionConfiguration['xDebugSession'] && !empty($extensionConfiguration['xDebugSession'])) {
-                curl_setopt($curlHandle, CURLOPT_COOKIE, 'XDEBUG_SESSION=' . $extensionConfiguration['xDebugSession']);
-            }
             $content = curl_exec($curlHandle);
             $response = curl_getinfo($curlHandle);
             curl_close($curlHandle);
