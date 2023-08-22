@@ -33,7 +33,7 @@ class Manager implements SingletonInterface
         if ($count === 1) {
             $changedRows = $connection->update(
                 self::QUEUE_TABLE,
-                ['tstamp' => time(), 'state' => Item::STATE_PENDING, 'message' => '', 'data' => json_encode($item->getData()), 'hash' => ''],
+                ['tstamp' => time(), 'state' => Item::STATE_PENDING, 'message' => '', 'data' => $item->getData(), 'hash' => ''],
                 ['configuration' => $item->getConfiguration(), 'identifier' => $item->getIdentifier()]
             );
 
@@ -91,7 +91,7 @@ class Manager implements SingletonInterface
         $query->where(
             $query->expr()->lt('tstamp', $timestamp),
             $query->expr()->eq('configuration', $configuration)
-        )->execute();
+        )->executeStatement();
     }
 
     /**
@@ -112,7 +112,7 @@ class Manager implements SingletonInterface
             [],
             ['tstamp' => 'ASC'],
             $limit !== null ? (int)$limit : 0
-        );
+        )->fetchAllAssociative();
     }
 
     public function getAllItems()
@@ -125,7 +125,7 @@ class Manager implements SingletonInterface
             [],
             [],
             ['tstamp' => 'ASC']
-        );
+        )->fetchAllAssociative();
     }
 
     public function getFinishedItems()
@@ -133,14 +133,14 @@ class Manager implements SingletonInterface
         $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable(self::QUEUE_TABLE);
         $query = $connection->createQueryBuilder()->select('*')->from(self::QUEUE_TABLE);
         $query->where(
-            $query->expr()->orX(
+            $query->expr()->or(
                 'state=' . Item::STATE_SUCCESS,
                 'state=' . Item::STATE_ERROR
             )
         );
         $query->orderBy('tstamp', 'ASC');
 
-        return $query->execute();
+        return $query->executeQuery()->fetchAllAssociative();
     }
 
     public function getSuccessfulItems()
@@ -201,7 +201,7 @@ class Manager implements SingletonInterface
             )
         );
 
-        return $query->execute()->fetchColumn(0);
+        return $query->executeQuery()->fetchOne();
     }
 
     public function countSuccessfulItems()
@@ -212,7 +212,7 @@ class Manager implements SingletonInterface
             $query->expr()->eq('state',  Item::STATE_SUCCESS)
         );
 
-        return $query->execute()->fetchColumn(0);
+        return $query->executeQuery()->fetchOne();
     }
 
     public function countFailedItems()
@@ -223,7 +223,7 @@ class Manager implements SingletonInterface
             $query->expr()->eq('state',  Item::STATE_ERROR)
         );
 
-        return $query->execute()->fetchColumn(0);
+        return $query->executeQuery()->fetchOne();
     }
 
     public function prepareItemForProcessing($configuration, $identifier, $hash)
@@ -246,7 +246,7 @@ class Manager implements SingletonInterface
     {
         $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable(self::QUEUE_TABLE);
 
-        return $connection->select(['*'], self::QUEUE_TABLE, ['hash' => $hash, 'state' => Item::STATE_IN_PROGRESS]);
+        return $connection->select(['*'], self::QUEUE_TABLE, ['hash' => $hash, 'state' => Item::STATE_IN_PROGRESS])->fetchAssociative();
     }
 
     public function removeQueueItem(Item $item)

@@ -80,7 +80,7 @@ class PageTree extends FrontendRequestCrawler
                             'uid!=' . $configuration['uid'],
                             'uid!=' . $rootConfiguration['uid']
                         );
-                    if ($query->execute()->fetchColumn(0) > 0) {
+                    if ($query->executeQuery()->fetchOne() > 0) {
                         continue;
                     }
                 }
