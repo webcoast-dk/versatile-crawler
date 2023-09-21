@@ -47,7 +47,7 @@ class Manager implements SingletonInterface
                     'tstamp' => time(),
                     'state' => Item::STATE_PENDING,
                     'message' => '',
-                    'data' => json_encode($item->getData())
+                    'data' => $item->getData()
                 ]
             );
 

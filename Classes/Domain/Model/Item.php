@@ -31,7 +31,7 @@ class Item extends AbstractEntity
     /**
      * @var array
      */
-    protected $data;
+    protected array $data;
 
     /**
      * Item constructor.
@@ -42,7 +42,7 @@ class Item extends AbstractEntity
      * @param string         $message
      * @param array          $data
      */
-    public function __construct($configuration, $identifier, $state = self::STATE_PENDING, $message = '', $data = [])
+    public function __construct($configuration, $identifier, $state = self::STATE_PENDING, $message = '', array $data = [])
     {
         $this->configuration = $configuration;
         $this->identifier = $identifier;
@@ -67,51 +67,36 @@ class Item extends AbstractEntity
         return $this->identifier;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getState()
+    public function getState(): int
     {
         return $this->state;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getMessage()
+    public function setState(int $state): self
+    {
+        $this->state = $state;
+        return $this;
+    }
+
+    public function getMessage(): string
     {
         return $this->message;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getData()
+    public function setMessage(string $message): self
+    {
+        $this->message = $message;
+        return $this;
+    }
+
+    public function getData(): array
     {
         return $this->data;
     }
 
-    /**
-     * @param mixed $state
-     */
-    public function setState($state)
-    {
-        $this->state = $state;
-    }
-
-    /**
-     * @param mixed $message
-     */
-    public function setMessage($message)
-    {
-        $this->message = $message;
-    }
-
-    /**
-     * @param mixed $data
-     */
-    public function setData($data)
+    public function setData(array $data): self
     {
         $this->data = $data;
+        return $this;
     }
 }
