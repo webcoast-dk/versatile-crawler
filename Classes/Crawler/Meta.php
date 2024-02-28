@@ -11,14 +11,7 @@ use WEBcoast\VersatileCrawler\Utility\TypeUtility;
 
 class Meta implements QueueInterface
 {
-
-    /**
-     * @param array $configuration
-     * @param array $rootConfiguration
-     *
-     * @return boolean
-     */
-    public function fillQueue(array $configuration, array $rootConfiguration = null)
+    public function fillQueue(array $configuration, ?array $rootConfiguration = null): bool
     {
         if ($rootConfiguration === null) {
             $rootConfiguration = $configuration;
@@ -36,8 +29,8 @@ class Meta implements QueueInterface
             $query->expr()->eq('m.uid_local', $configuration['uid'])
         );
         $result = true;
-        if ($statement = $query->execute()) {
-            foreach ($statement as $subConfiguration) {
+        if ($statement = $query->executeQuery()) {
+            foreach ($statement->fetchAllAssociative() as $subConfiguration) {
                 $className = TypeUtility::getClassForType($subConfiguration['type']);
                 $crawler = GeneralUtility::makeInstance($className);
                 if (!$crawler instanceof QueueInterface) {

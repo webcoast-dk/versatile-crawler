@@ -33,13 +33,7 @@ class Records extends FrontendRequestCrawler
         $this->pageRepository = GeneralUtility::makeInstance(PageRepository::class);
     }
 
-    /**
-     * @param array $configuration
-     * @param array $rootConfiguration
-     *
-     * @return boolean
-     */
-    public function fillQueue(array $configuration, array $rootConfiguration = null)
+    public function fillQueue(array $configuration, ?array $rootConfiguration = null): bool
     {
         if ($rootConfiguration === null) {
             $rootConfiguration = $configuration;
@@ -78,19 +72,18 @@ class Records extends FrontendRequestCrawler
             );
         }
         $query->setRestrictions(GeneralUtility::makeInstance(FrontendRestrictionContainer::class));
-        // allow changing the query in sub classes
+        // allow changing the query in subclasses
         $this->alterQuery($query);
 
         $result = true;
         $context = GeneralUtility::makeInstance(Context::class);
-        $orginalVisibilityAspect = $context->getAspect('visibility');
+        $originalVisibilityAspect = $context->getAspect('visibility');
         $visibilityAspect = new VisibilityAspect(false, false, false);
         $context->setAspect('visibility', $visibilityAspect);
-        if ($statement = $query->execute()) {
-            $statement->setFetchMode(\PDO::FETCH_ASSOC);
+        if ($statement = $query->executeQuery()) {
             $queueManager = GeneralUtility::makeInstance(Manager::class);
             $languages = GeneralUtility::intExplode(',', $configuration['languages']);
-            foreach ($statement as $record) {
+            foreach ($statement->fetchAllAssociative() as $record) {
                 // no language field is set or the record is set to "all languages", index it in all languages
                 if (!isset($GLOBALS['TCA'][$configuration['table_name']]['ctrl']['languageField']) || (int)$record[$GLOBALS['TCA'][$configuration['table_name']]['ctrl']['languageField']] === -1) {
                     foreach ($languages as $language) {
@@ -181,12 +174,12 @@ class Records extends FrontendRequestCrawler
                 }
             }
         }
-        $context->setAspect('visibility', $orginalVisibilityAspect);
+        $context->setAspect('visibility', $originalVisibilityAspect);
 
         return $result;
     }
 
-    protected function getStoragePagesRecursively($pageUid, &$storagePages, $level)
+    protected function getStoragePagesRecursively($pageUid, &$storagePages, $level): void
     {
         if ($level === null || $level > 0) {
             $query = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('pages');
@@ -212,16 +205,17 @@ class Records extends FrontendRequestCrawler
     /**
      * @param QueryBuilder $query
      */
-    protected function alterQuery(&$query)
+    protected function alterQuery(&$query): void
     {
         // just do nothing here
     }
 
-    protected function addAdditionalItemData($record, &$data) {
+    protected function addAdditionalItemData($record, &$data): void
+    {
         // just do nothing here
     }
 
-    public function isIndexingAllowed(Item $item, TypoScriptFrontendController $typoScriptFrontendController)
+    public function isIndexingAllowed(Item $item, TypoScriptFrontendController $typoScriptFrontendController): bool
     {
         $data = $item->getData();
         $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable(
@@ -261,7 +255,7 @@ class Records extends FrontendRequestCrawler
         return $isAllowed;
     }
 
-    protected function buildQueryString(Item $item, array $configuration)
+    protected function buildQueryString(Item $item, array $configuration): string
     {
 
         $data = $item->getData();
@@ -279,28 +273,23 @@ class Records extends FrontendRequestCrawler
         return $queryString;
     }
 
-    /**
-     * @param \WEBcoast\VersatileCrawler\Domain\Model\Item $item
-     *
-     * @return int
-     */
-    public function getRecordUid(Item $item)
+    public function getRecordUid(Item $item): int
     {
         $data = $item->getData();
 
         return ((int)$data['record_uid'] > 0 ? (int)$data['record_uid'] : 0);
     }
 
-    public function enrichIndexData(Item $item, TypoScriptFrontendController $typoScriptFrontendController, Indexer &$indexer)
+    public function enrichIndexData(Item $item, TypoScriptFrontendController $typoScriptFrontendController, Indexer &$indexer): void
     {
         $data = $item->getData();
         $configuration = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable(
             QueueController::CONFIGURATION_TABLE
-        )->select(['*'], QueueController::CONFIGURATION_TABLE, ['uid' => $item->getConfiguration()])->fetch();
+        )->select(['*'], QueueController::CONFIGURATION_TABLE, ['uid' => $item->getConfiguration()])->fetchAssociative();
         if (is_array($configuration) && isset($configuration['table_name'])) {
             $record = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable(
                 $configuration['table_name']
-            )->select(['*'], $configuration['table_name'], ['uid' => $data['record_uid']])->fetch();
+            )->select(['*'], $configuration['table_name'], ['uid' => $data['record_uid']])->fetchAssociative();
             if (is_array($record)) {
                 if (isset($GLOBALS['TCA'][$configuration['table_name']]['ctrl']['crdate']) && $record[$GLOBALS['TCA'][$configuration['table_name']]['ctrl']['crdate']]) {
                     $indexer->conf['crdate'] = $record[$GLOBALS['TCA'][$configuration['table_name']]['ctrl']['crdate']];

@@ -3,7 +3,6 @@
 namespace WEBcoast\VersatileCrawler\Scheduler;
 
 
-use Doctrine\DBAL\DBALException;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Scheduler\ProgressProviderInterface;
 use WEBcoast\VersatileCrawler\Controller\CrawlerController;
@@ -22,7 +21,7 @@ class ProcessTask extends AbstractBaseTask implements ProgressProviderInterface
      *
      * @return bool Returns TRUE on successful execution, FALSE on error
      */
-    public function execute()
+    public function execute(): bool
     {
         $crawlerController = GeneralUtility::makeInstance(CrawlerController::class);
 
@@ -37,18 +36,14 @@ class ProcessTask extends AbstractBaseTask implements ProgressProviderInterface
     public function getProgress()
     {
         $queueManager = GeneralUtility::makeInstance(Manager::class);
-        try {
-            $totalItems = $queueManager->countAllItems();
-            $finishedItems = $queueManager->countFinishedItems();
+        $totalItems = $queueManager->countAllItems();
+        $finishedItems = $queueManager->countFinishedItems();
 
-            if ($totalItems === 0) {
-                return 0;
-            }
-
-            return $finishedItems / $totalItems * 100;
-        } catch (DBALException $e) {
+        if ($totalItems === 0) {
             return 0;
         }
+
+        return $finishedItems / $totalItems * 100;
     }
 
     public function getAdditionalInformation()

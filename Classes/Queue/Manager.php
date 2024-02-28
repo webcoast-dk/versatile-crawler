@@ -19,8 +19,6 @@ class Manager implements SingletonInterface
      * @param \WEBcoast\VersatileCrawler\Domain\Model\Item $item
      *
      * @return bool
-     *
-     * @throws \Doctrine\DBAL\DBALException
      */
     public function addOrUpdateItem(Item $item)
     {
@@ -62,7 +60,6 @@ class Manager implements SingletonInterface
      *
      * @return bool
      *
-     * @throws \Doctrine\DBAL\DBALException
      * @throws \RuntimeException
      */
     public function updateState($item)
@@ -169,12 +166,7 @@ class Manager implements SingletonInterface
         );
     }
 
-    /**
-     * @return int
-     *
-     * @throws \Doctrine\DBAL\DBALException
-     */
-    public function countAllItems()
+    public function countAllItems(): int
     {
         $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable(self::QUEUE_TABLE);
 
@@ -185,12 +177,7 @@ class Manager implements SingletonInterface
         );
     }
 
-    /**
-     * @return int
-     *
-     * @throws \Doctrine\DBAL\DBALException
-     */
-    public function countFinishedItems()
+    public function countFinishedItems(): int
     {
         $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable(self::QUEUE_TABLE);
         $query = $connection->createQueryBuilder()->count('*')->from(self::QUEUE_TABLE);
@@ -204,7 +191,7 @@ class Manager implements SingletonInterface
         return $query->executeQuery()->fetchOne();
     }
 
-    public function countSuccessfulItems()
+    public function countSuccessfulItems(): int
     {
         $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable(self::QUEUE_TABLE);
         $query = $connection->createQueryBuilder()->count('*')->from(self::QUEUE_TABLE);
@@ -215,7 +202,7 @@ class Manager implements SingletonInterface
         return $query->executeQuery()->fetchOne();
     }
 
-    public function countFailedItems()
+    public function countFailedItems(): int
     {
         $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable(self::QUEUE_TABLE);
         $query = $connection->createQueryBuilder()->count('*')->from(self::QUEUE_TABLE);
@@ -256,7 +243,7 @@ class Manager implements SingletonInterface
         return $connection->delete(self::QUEUE_TABLE, ['identifier' => $item->getIdentifier()]);
     }
 
-    public function getFromRecord($record)
+    public function getFromRecord($record): Item
     {
         return new Item(
             $record['configuration'],
