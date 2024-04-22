@@ -3,6 +3,8 @@
 namespace WEBcoast\VersatileCrawler\Crawler;
 
 
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Site\Entity\Site;
@@ -17,8 +19,10 @@ use WEBcoast\VersatileCrawler\Exception\PageNotAvailableForIndexingException;
 use WEBcoast\VersatileCrawler\Middleware\IndexingMiddleware;
 use WEBcoast\VersatileCrawler\Queue\Manager;
 
-abstract class FrontendRequestCrawler implements CrawlerInterface, QueueInterface
+abstract class FrontendRequestCrawler implements CrawlerInterface, QueueInterface, LoggerAwareInterface
 {
+    use LoggerAwareTrait;
+
     /**
      * @param \WEBcoast\VersatileCrawler\Domain\Model\Item                $item
      * @param \TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController $typoScriptFrontendController
@@ -68,10 +72,12 @@ abstract class FrontendRequestCrawler implements CrawlerInterface, QueueInterfac
             } else {
                 $result = json_decode($content, true);
                 $item->setState(Item::STATE_ERROR);
-                if (is_array($result)) {
+                if ($result['message'] ?? null) {
                     $item->setMessage($result['message']);
+                    $this->logger->error('Crawling failed: ' . $result['message'], ['result' => $result]);
                 } else {
                     $item->setMessage(sprintf('An error occurred. The call to the url "%s" returned the status code %d', $response['url'], $response['http_code']));
+                    $this->logger->error(sprintf('Crawling failed: The call to the url "%s" returned the status code %d', $response['url'], $response['http_code']), ['result' => $result]);
                 }
             }
         } catch (PageNotAvailableForIndexingException $exception) {
