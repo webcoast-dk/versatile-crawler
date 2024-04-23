@@ -101,7 +101,7 @@ return (function() {
                 'config' => [
                     'type' => 'select',
                     'renderType' => 'selectSingle',
-                    'special' => 'tables',
+                    'itemsProcFunc' => \WEBcoast\VersatileCrawler\Tca\TableSelectItems::class . '->addTableItems',
                 ]
             ],
             'record_storage_page' => [
