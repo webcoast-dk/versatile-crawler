@@ -3,7 +3,6 @@
 namespace WEBcoast\VersatileCrawler\Crawler;
 
 
-use Doctrine\DBAL\DBALException;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Context\VisibilityAspect;
@@ -39,15 +38,7 @@ class PageTree extends FrontendRequestCrawler
         }
     }
 
-    /**
-     * @param array      $configuration
-     * @param array|null $rootConfiguration
-     *
-     * @throws DBALException
-     *
-     * @return boolean
-     */
-    public function fillQueue(array $configuration, array $rootConfiguration = null)
+    public function fillQueue(array $configuration, ?array $rootConfiguration = null): bool
     {
         if ($rootConfiguration === null) {
             $rootConfiguration = $configuration;
@@ -80,7 +71,7 @@ class PageTree extends FrontendRequestCrawler
                             'uid!=' . $configuration['uid'],
                             'uid!=' . $rootConfiguration['uid']
                         );
-                    if ($query->execute()->fetchColumn(0) > 0) {
+                    if ($query->executeQuery()->fetchOne() > 0) {
                         continue;
                     }
                 }
@@ -132,7 +123,7 @@ class PageTree extends FrontendRequestCrawler
         return $result;
     }
 
-    protected function getPagesRecursively($page, &$pages, $level)
+    protected function getPagesRecursively($page, &$pages, $level): void
     {
         $subPages = $this->pageRepository->getMenu($page['uid']);
         foreach ($subPages as $subPage) {
@@ -144,14 +135,9 @@ class PageTree extends FrontendRequestCrawler
     }
 
     /**
-     * @param \WEBcoast\VersatileCrawler\Domain\Model\Item $item
-     * @param array                                        $configuration
-     *
      * @throws PageNotAvailableForIndexingException
-     *
-     * @return string
      */
-    protected function buildQueryString(Item $item, array $configuration)
+    protected function buildQueryString(Item $item, array $configuration): string
     {
         $data = $item->getData();
         $page = $this->pageRepository->getPage($data['page']);
@@ -162,13 +148,7 @@ class PageTree extends FrontendRequestCrawler
         return 'id=' . $data['page'] . '&L=' . $data['sys_language_uid'];
     }
 
-    /**
-     * @param \WEBcoast\VersatileCrawler\Domain\Model\Item                $item
-     * @param \TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController $typoScriptFrontendController
-     *
-     * @return boolean
-     */
-    public function isIndexingAllowed(Item $item, TypoScriptFrontendController $typoScriptFrontendController)
+    public function isIndexingAllowed(Item $item, TypoScriptFrontendController $typoScriptFrontendController): bool
     {
         $data = $item->getData();
         return ($data['page'] === (int)$typoScriptFrontendController->id && $data['sys_language_uid'] === GeneralUtility::makeInstance(Context::class)->getAspect('language')->getId());

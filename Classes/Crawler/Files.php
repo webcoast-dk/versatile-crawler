@@ -4,14 +4,13 @@ namespace WEBcoast\VersatileCrawler\Crawler;
 
 use Doctrine\DBAL\DBALException;
 use TYPO3\CMS\Core\Database\ConnectionPool;
-use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
 use TYPO3\CMS\Core\Database\Query\Restriction\FrontendRestrictionContainer;
-use TYPO3\CMS\Core\Database\Query\Restriction\HiddenRestriction;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\FileRepository;
 use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Resource\ResourceStorage;
 use TYPO3\CMS\Core\Resource\StorageRepository;
+use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\IndexedSearch\Indexer;
 use WEBcoast\VersatileCrawler\Controller\CrawlerController;
@@ -35,14 +34,7 @@ class Files implements CrawlerInterface, QueueInterface
         $this->storageRepository = GeneralUtility::makeInstance(StorageRepository::class);
     }
 
-    /**
-     * @param array $configuration
-     * @param array $rootConfiguration
-     *
-     * @return boolean
-     * @throws DBALException
-     */
-    public function fillQueue(array $configuration, array $rootConfiguration = null)
+    public function fillQueue(array $configuration, ?array $rootConfiguration = null): bool
     {
         if ($rootConfiguration === null) {
             $rootConfiguration = $configuration;
@@ -56,8 +48,8 @@ class Files implements CrawlerInterface, QueueInterface
             ->join('r', self::TABLE_SYS_STORAGE, 's', 'r.uid_foreign = s.uid')
             ->where($storageQuery->expr()->eq('r.uid_local', (int)$configuration['uid']))
             ->getRestrictions()->removeAll()->add(GeneralUtility::makeInstance(FrontendRestrictionContainer::class));
-        if ($statement = $storageQuery->execute()) {
-            foreach ($statement as $storageRecord) {
+        if ($statement = $storageQuery->executeQuery()) {
+            foreach ($statement->fetchAllAssociative() as $storageRecord) {
                 $storages[] = $this->storageRepository->findByUid($storageRecord['storageId']);
             }
         }
@@ -103,10 +95,7 @@ class Files implements CrawlerInterface, QueueInterface
         return $result;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function processQueueItem(Item $item, array $configuration)
+    public function processQueueItem(Item $item, array $configuration): bool
     {
         $hash = md5($item->getIdentifier() . time());
         $queueManager = GeneralUtility::makeInstance(Manager::class);
@@ -118,7 +107,7 @@ class Files implements CrawlerInterface, QueueInterface
             [],
             [],
             1
-        )->fetch(\PDO::FETCH_ASSOC);
+        )->fetchAssociative();
         /** @var File $file */
         $file = GeneralUtility::makeInstance(FileRepository::class)->findByUid($item->getData()['fileId']);
 
@@ -142,35 +131,11 @@ class Files implements CrawlerInterface, QueueInterface
         return true;
     }
 
-    protected function getRootPage($pageId)
+    protected function getRootPage($pageId): int
     {
-        $pagesQueryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('pages');
-        $pagesQueryBuilder->select('uid', 'pid')->from('pages');
-        $pagesQueryBuilder->getRestrictions()
-            ->removeAll()
-            ->add(GeneralUtility::makeInstance(DeletedRestriction::class))
-            ->add(GeneralUtility::makeInstance(HiddenRestriction::class));
-        $domainQueryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_domain');
-        $domainQueryBuilder->getRestrictions()
-            ->removeAll()
-            ->add(GeneralUtility::makeInstance(HiddenRestriction::class));
-        $domainQueryBuilder->count('uid')->from('sys_domain');
-        do {
-            $domainQueryBuilder->where(
-                $domainQueryBuilder->expr()->eq('pid', $pageId)
-            );
-            $domainStatement = $domainQueryBuilder->execute();
-            if ($domainStatement->fetchColumn(0) > 0) {
-                return $pageId;
-            }
+        $siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
+        $site = $siteFinder->getSiteByPageId($pageId);
 
-            $pagesQueryBuilder->where(
-                $pagesQueryBuilder->expr()->eq('uid', $pageId)
-            );
-            $pagesStatement = $pagesQueryBuilder->execute();
-            $page = $pagesStatement->fetch(\PDO::FETCH_ASSOC);
-        } while ($page && $page['pid'] > 0 && $pageId = $page['pid']);
-
-        return $pageId;
+        return $site->getRootPageId();
     }
 }

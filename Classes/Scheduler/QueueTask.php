@@ -23,14 +23,14 @@ class QueueTask extends AbstractBaseTask
      *
      * @return bool Returns TRUE on successful execution, FALSE on error
      */
-    public function execute()
+    public function execute(): bool
     {
         $queueController = GeneralUtility::makeInstance(QueueController::class);
 
         return $queueController->fillQueue($this->configurations);
     }
 
-    public function getAdditionalInformation()
+    public function getAdditionalInformation(): string
     {
         $configurationNames = [];
 
@@ -43,7 +43,7 @@ class QueueTask extends AbstractBaseTask
                 QueueController::CONFIGURATION_TABLE,
                 ['uid' => $configurationUid]
             );
-            $configuration = $configurationResult->fetch();
+            $configuration = $configurationResult->fetchAssociative();
             if (is_array($configuration) && isset($configuration['title'])) {
                 $configurationNames[] = $configuration['title'];
             }

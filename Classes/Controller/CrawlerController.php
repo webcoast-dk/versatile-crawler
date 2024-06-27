@@ -53,7 +53,7 @@ class CrawlerController
                 self::CONFIGURATION_TABLE,
                 ['uid' => $itemArray['configuration']]
             );
-            $configuration = $configurationResult->fetch();
+            $configuration = $configurationResult->fetchAssociative();
             $className = TypeUtility::getClassForType($configuration['type']);
             $crawler = GeneralUtility::makeInstance($className);
             if (!$crawler instanceof CrawlerInterface) {

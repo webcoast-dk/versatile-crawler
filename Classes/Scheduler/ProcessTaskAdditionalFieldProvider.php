@@ -4,16 +4,17 @@ namespace WEBcoast\VersatileCrawler\Scheduler;
 
 
 use TYPO3\CMS\Core\Messaging\FlashMessage;
-use TYPO3\CMS\Scheduler\AdditionalFieldProviderInterface;
+use TYPO3\CMS\Scheduler\Task\AbstractTask;
+use TYPO3\CMS\Scheduler\Task\Enumeration\Action;
 
-class ProcessTaskAdditionalFieldProvider implements AdditionalFieldProviderInterface
+class ProcessTaskAdditionalFieldProvider extends AbstractAdditionalFieldProvider
 {
     /**
      * Gets additional fields to render in the form to add/edit a task
      *
      * @param array                                                     $taskInfo        Values of the fields from the
      *                                                                                   add/edit task form
-     * @param \TYPO3\CMS\Scheduler\Task\AbstractTask                    $task            The task object being edited.
+     * @param AbstractTask                    $task            The task object being edited.
      *                                                                                   Null when adding a task!
      * @param \TYPO3\CMS\Scheduler\Controller\SchedulerModuleController $schedulerModule Reference to the scheduler
      *                                                                                   backend module
@@ -29,12 +30,12 @@ class ProcessTaskAdditionalFieldProvider implements AdditionalFieldProviderInter
         $fieldId = 'versatileCrawler_processTask_numberOfItemsPerRun';
         $fieldName = 'tx_scheduler[' . $fieldId . ']';
 
-        if ($schedulerModule->CMD === 'edit' && $task instanceof processTask && !isset($taskInfo[$fieldId])) {
+        if ($schedulerModule->getCurrentAction() == Action::EDIT && $task instanceof ProcessTask && !isset($taskInfo[$fieldId])) {
             $taskInfo[$fieldId] = $task->numberOfItemsPerRun;
         }
 
         $additionalFields[$fieldId] = [
-            'code' => '<input type="text" class="form-control" name="' . $fieldName . '" id="' . $fieldId . '" size="10" value="' . $task->numberOfItemsPerRun . '"" />',
+            'code' => '<input type="text" class="form-control" name="' . $fieldName . '" id="' . $fieldId . '" size="10" value="' . ($task ? $task->numberOfItemsPerRun ?? 100 : 100) . '"" />',
             'label' => 'LLL:EXT:versatile_crawler/Resources/Private/Language/locallang_backend.xlf:scheduler.processTask.numberOfItemsPerRun'
         ];
 
@@ -59,7 +60,7 @@ class ProcessTaskAdditionalFieldProvider implements AdditionalFieldProviderInter
                 $submittedData['versatileCrawler_processTask_numberOfItemsPerRun'],
                 ''
             ) !== 0 && (int)$submittedData['versatileCrawler_processTask_numberOfItemsPerRun'] < 1) {
-            $schedulerModule->addMessage(
+            $this->addMessage(
                 $this->getLanguageService()->sL(
                     'LLL:EXT:versatile_crawler/Resources/Private/Language/locallang_backend.xlf:scheduler.processTask.error.numberOfItemsPerRun'
                 ),
@@ -76,18 +77,10 @@ class ProcessTaskAdditionalFieldProvider implements AdditionalFieldProviderInter
      *
      * @param array                                  $submittedData An array containing the data submitted by the
      *                                                              add/edit task form
-     * @param \TYPO3\CMS\Scheduler\Task\AbstractTask $task          Reference to the scheduler backend module
+     * @param AbstractTask $task          Reference to the scheduler backend module
      */
-    public function saveAdditionalFields(array $submittedData, \TYPO3\CMS\Scheduler\Task\AbstractTask $task)
+    public function saveAdditionalFields(array $submittedData, AbstractTask $task)
     {
         $task->numberOfItemsPerRun = $submittedData['versatileCrawler_processTask_numberOfItemsPerRun'];
-    }
-
-    /**
-     * @return \TYPO3\CMS\Lang\LanguageService
-     */
-    protected final function getLanguageService()
-    {
-        return $GLOBALS['LANG'];
     }
 }

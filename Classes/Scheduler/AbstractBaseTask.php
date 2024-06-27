@@ -8,7 +8,7 @@ use TYPO3\CMS\Scheduler\Task\AbstractTask;
 
 abstract class AbstractBaseTask extends AbstractTask
 {
-    protected function getLanguageService(): LanguageService
+    protected function getLanguageService(): ?LanguageService
     {
         return parent::getLanguageService() ?? LanguageService::create('default');
     }

@@ -41,7 +41,7 @@ class QueueController
         $result = true;
         foreach ($configurations as $configurationUid) {
             $configurationResult = $connection->select(['*'], self::CONFIGURATION_TABLE, ['uid' => $configurationUid]);
-            $configuration = $configurationResult->fetch();
+            $configuration = $configurationResult->fetchAssociative();
             $className = TypeUtility::getClassForType($configuration['type']);
             $crawler = GeneralUtility::makeInstance($className);
             if (!$crawler instanceof QueueInterface) {
